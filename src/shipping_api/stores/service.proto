@@ -1,0 +1,74 @@
+syntax = "proto3";
+package listing_api;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/hdtradeservices/shipping-api-proto/go/shipping_api/listing";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {title : "Shipping Integration Stores API";
+version : "v2";
+}
+}
+;
+
+// StoresService provides a service for managing Stores
+// LATER: add links to guides around store definition and management
+service StoresService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    name : "Stores Service",
+    // TODO: fill this out
+    // protolint:disable:next MAX_LINE_LENGTH
+    description : ""
+  };
+
+  // List retrieves a single listing by its ID
+  rpc List(ListRequest) returns (ListResponse) {
+    option (google.api.http) = {
+      get : "/v2/shipping/stores"
+    };
+  }
+
+  // Update creates a new store
+  rpc Create(CreateRequest) returns (CreateResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/stores"
+    };
+  }
+
+  // Update can be used to update existing stores
+  rpc Update(UpdateRequest) returns (UpdateResponse) {
+    option (google.api.http) = {
+      put : "/v2/shipping/stores/{store_id}"
+    };
+  }
+
+  // Delete can be used to delete existing stores
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {
+    option (google.api.http) = {
+      delete : "/v2/shipping/stores/{store_id}"
+    };
+  }
+}
+
+// Store contains an ID and display name for a store
+message Store {
+  string id = 1;
+  string display_name = 2;
+}
+
+message ListRequest {}
+message ListResponse { repeated Store stores = 1; }
+
+message CreateRequest { Store store = 1; }
+message CreateResponse {}
+
+message UpdateRequest {
+  string store_id = 1;
+  Store store = 2;
+}
+message UpdateResponse {}
+
+message DeleteRequest { string store_id = 1; }
+message DeleteResponse {}
