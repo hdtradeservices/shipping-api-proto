@@ -4,17 +4,17 @@
 ## Table of Contents
 
 - [shipping_api/stores/service.proto](#shipping_api_stores_service-proto)
-    - [CreateRequest](#listing_api-CreateRequest)
-    - [CreateResponse](#listing_api-CreateResponse)
-    - [DeleteRequest](#listing_api-DeleteRequest)
-    - [DeleteResponse](#listing_api-DeleteResponse)
-    - [ListRequest](#listing_api-ListRequest)
-    - [ListResponse](#listing_api-ListResponse)
-    - [Store](#listing_api-Store)
-    - [UpdateRequest](#listing_api-UpdateRequest)
-    - [UpdateResponse](#listing_api-UpdateResponse)
+    - [CreateRequest](#shipping_api-CreateRequest)
+    - [CreateResponse](#shipping_api-CreateResponse)
+    - [DeleteRequest](#shipping_api-DeleteRequest)
+    - [DeleteResponse](#shipping_api-DeleteResponse)
+    - [ListRequest](#shipping_api-ListRequest)
+    - [ListResponse](#shipping_api-ListResponse)
+    - [Store](#shipping_api-Store)
+    - [UpdateRequest](#shipping_api-UpdateRequest)
+    - [UpdateResponse](#shipping_api-UpdateResponse)
   
-    - [StoresService](#listing_api-StoresService)
+    - [StoresService](#shipping_api-StoresService)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -27,7 +27,7 @@
 
 
 
-<a name="listing_api-CreateRequest"></a>
+<a name="shipping_api-CreateRequest"></a>
 
 ### CreateRequest
 
@@ -35,14 +35,14 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| store | [Store](#listing_api-Store) |  |  |
+| store | [Store](#shipping_api-Store) |  |  |
 
 
 
 
 
 
-<a name="listing_api-CreateResponse"></a>
+<a name="shipping_api-CreateResponse"></a>
 
 ### CreateResponse
 
@@ -52,7 +52,7 @@
 
 
 
-<a name="listing_api-DeleteRequest"></a>
+<a name="shipping_api-DeleteRequest"></a>
 
 ### DeleteRequest
 
@@ -67,7 +67,7 @@
 
 
 
-<a name="listing_api-DeleteResponse"></a>
+<a name="shipping_api-DeleteResponse"></a>
 
 ### DeleteResponse
 
@@ -77,7 +77,7 @@
 
 
 
-<a name="listing_api-ListRequest"></a>
+<a name="shipping_api-ListRequest"></a>
 
 ### ListRequest
 
@@ -87,7 +87,7 @@
 
 
 
-<a name="listing_api-ListResponse"></a>
+<a name="shipping_api-ListResponse"></a>
 
 ### ListResponse
 
@@ -95,14 +95,14 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| stores | [Store](#listing_api-Store) | repeated |  |
+| stores | [Store](#shipping_api-Store) | repeated |  |
 
 
 
 
 
 
-<a name="listing_api-Store"></a>
+<a name="shipping_api-Store"></a>
 
 ### Store
 Store contains an ID and display name for a store
@@ -118,7 +118,7 @@ Store contains an ID and display name for a store
 
 
 
-<a name="listing_api-UpdateRequest"></a>
+<a name="shipping_api-UpdateRequest"></a>
 
 ### UpdateRequest
 
@@ -127,14 +127,14 @@ Store contains an ID and display name for a store
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | store_id | [string](#string) |  |  |
-| store | [Store](#listing_api-Store) |  |  |
+| store | [Store](#shipping_api-Store) |  |  |
 
 
 
 
 
 
-<a name="listing_api-UpdateResponse"></a>
+<a name="shipping_api-UpdateResponse"></a>
 
 ### UpdateResponse
 
@@ -150,7 +150,7 @@ Store contains an ID and display name for a store
  
 
 
-<a name="listing_api-StoresService"></a>
+<a name="shipping_api-StoresService"></a>
 
 ### StoresService
 StoresService provides a service for managing Stores
@@ -158,10 +158,10 @@ LATER: add links to guides around store definition and management
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| List | [ListRequest](#listing_api-ListRequest) | [ListResponse](#listing_api-ListResponse) | List retrieves a single listing by its ID |
-| Create | [CreateRequest](#listing_api-CreateRequest) | [CreateResponse](#listing_api-CreateResponse) | Update creates a new store |
-| Update | [UpdateRequest](#listing_api-UpdateRequest) | [UpdateResponse](#listing_api-UpdateResponse) | Update can be used to update existing stores |
-| Delete | [DeleteRequest](#listing_api-DeleteRequest) | [DeleteResponse](#listing_api-DeleteResponse) | Delete can be used to delete existing stores |
+| List | [ListRequest](#shipping_api-ListRequest) | [ListResponse](#shipping_api-ListResponse) | List retrieves a single listing by its ID |
+| Create | [CreateRequest](#shipping_api-CreateRequest) | [CreateResponse](#shipping_api-CreateResponse) | Update creates a new store |
+| Update | [UpdateRequest](#shipping_api-UpdateRequest) | [UpdateResponse](#shipping_api-UpdateResponse) | Update can be used to update existing stores |
+| Delete | [DeleteRequest](#shipping_api-DeleteRequest) | [DeleteResponse](#shipping_api-DeleteResponse) | Delete can be used to delete existing stores |
 
  
 

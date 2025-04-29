@@ -2,11 +2,11 @@
 // source: shipping_api/stores/service.proto
 
 /*
-Package listing is a reverse proxy.
+Package stores is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package listing
+package stores
 
 import (
 	"context"
@@ -219,7 +219,7 @@ func RegisterStoresServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/listing_api.StoresService/List", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.StoresService/List", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -242,7 +242,7 @@ func RegisterStoresServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/listing_api.StoresService/Create", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.StoresService/Create", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -265,7 +265,7 @@ func RegisterStoresServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/listing_api.StoresService/Update", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.StoresService/Update", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -288,7 +288,7 @@ func RegisterStoresServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/listing_api.StoresService/Delete", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.StoresService/Delete", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -350,7 +350,7 @@ func RegisterStoresServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/listing_api.StoresService/List", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.StoresService/List", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -370,7 +370,7 @@ func RegisterStoresServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/listing_api.StoresService/Create", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.StoresService/Create", runtime.WithHTTPPathPattern("/v2/shipping/stores"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -390,7 +390,7 @@ func RegisterStoresServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/listing_api.StoresService/Update", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.StoresService/Update", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -410,7 +410,7 @@ func RegisterStoresServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/listing_api.StoresService/Delete", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.StoresService/Delete", runtime.WithHTTPPathPattern("/v2/shipping/stores/{store_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
