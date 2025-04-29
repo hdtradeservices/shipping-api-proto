@@ -1,10 +1,10 @@
 syntax = "proto3";
-package listing_api;
+package shipping_api;
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/hdtradeservices/shipping-api-proto/go/shipping_api/listing";
+option go_package = "github.com/hdtradeservices/shipping-api-proto/go/shipping_api/stores";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info : {title : "Shipping Integration Stores API";

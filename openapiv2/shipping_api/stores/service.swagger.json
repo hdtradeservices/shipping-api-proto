@@ -24,7 +24,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/listing_apiListResponse"
+              "$ref": "#/definitions/shipping_apiListResponse"
             }
           },
           "default": {
@@ -45,7 +45,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/listing_apiCreateResponse"
+              "$ref": "#/definitions/shipping_apiCreateResponse"
             }
           },
           "default": {
@@ -68,7 +68,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/listing_apiDeleteResponse"
+              "$ref": "#/definitions/shipping_apiDeleteResponse"
             }
           },
           "default": {
@@ -97,7 +97,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/listing_apiUpdateResponse"
+              "$ref": "#/definitions/shipping_apiUpdateResponse"
             }
           },
           "default": {
@@ -122,38 +122,6 @@
     }
   },
   "definitions": {
-    "listing_apiCreateResponse": {
-      "type": "object"
-    },
-    "listing_apiDeleteResponse": {
-      "type": "object"
-    },
-    "listing_apiListResponse": {
-      "type": "object",
-      "properties": {
-        "stores": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/listing_apiStore"
-          }
-        }
-      }
-    },
-    "listing_apiStore": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "displayName": {
-          "type": "string"
-        }
-      },
-      "title": "Store contains an ID and display name for a store"
-    },
-    "listing_apiUpdateResponse": {
-      "type": "object"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -180,6 +148,38 @@
           }
         }
       }
+    },
+    "shipping_apiCreateResponse": {
+      "type": "object"
+    },
+    "shipping_apiDeleteResponse": {
+      "type": "object"
+    },
+    "shipping_apiListResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiStore"
+          }
+        }
+      }
+    },
+    "shipping_apiStore": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        }
+      },
+      "title": "Store contains an ID and display name for a store"
+    },
+    "shipping_apiUpdateResponse": {
+      "type": "object"
     }
   }
 }
