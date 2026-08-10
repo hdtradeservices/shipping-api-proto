@@ -1,0 +1,549 @@
+syntax = "proto3";
+package shipping_api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/hdtradeservices/shipping-api-proto/go/shipping_api/fulfillment";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {
+    title : "Fulfillment Integration API";
+    version : "v2";
+  }
+};
+
+// FulfillmentIntegrationService is the contract a fulfillment integration —
+// a 3PL, a warehouse management system, or a storefront acting as a warehouse —
+// uses to do work on Zentail's behalf.
+//
+// Every call is scoped to the integration resolved from the API token, and
+// through it to the warehouses bound to that integration. No request carries a
+// warehouse id or a company id; supplying one would let a caller ask about
+// warehouses that are not theirs.
+//
+// **Two queues, and Zentail says what it wants.** Poll ListNeedToShip for work
+// to ship and ListNeedToCancel for work to pull back, then confirm each. There
+// is no change feed to diff and no status to interpret: if a fulfillment order
+// is in a queue, Zentail wants something done about it, and confirming is what
+// removes it. An integration that drains both queues is correct by
+// construction.
+//
+// Neither queue takes a time filter. A queue is drained by confirming, never by
+// advancing a clock — a cursor would let an integration skip past work it
+// failed to finish, which is exactly the state the queue exists to represent.
+//
+// **The unit of work is a fulfillment order, not an order.** One customer order
+// routed across two warehouses produces two fulfillment orders, and if both
+// warehouses are yours you receive both. Every write identifies its work by
+// `fulfillment_order_id`; `order_number` is carried for display and correlation
+// only, and is not unique to you.
+service FulfillmentIntegrationService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    name : "Fulfillment Integration Service",
+    description : "Drain two queues: ship what Zentail asks you to ship, and "
+                  "cancel what it asks you to pull back. Inventory has its own "
+                  "contract — see the Inventory Integration API."
+  };
+
+  // ListNeedToShip returns fulfillment orders you owe a shipment on: work
+  // routed to your warehouses and not yet shipped or cancelled.
+  //
+  // New work and re-routed work look the same here, which is the point. A
+  // partial re-route reduces a line's quantity rather than removing the
+  // fulfillment order, so `lines` is authoritative on every read and must not
+  // be cached across polls.
+  //
+  // An order leaves this queue when its lines are shipped, when Zentail
+  // cancels it, or when you reject it. Acknowledging does not remove it — you
+  // still owe the shipment.
+  rpc ListNeedToShip(ListNeedToShipRequest) returns (ListNeedToShipResponse) {
+    option (google.api.http) = {
+      get : "/v2/shipping/need_to_ship"
+    };
+  }
+
+  // ListNeedToCancel returns fulfillment orders you have acknowledged that
+  // Zentail now wants pulled back — re-routed to another warehouse, or
+  // cancelled by the buyer or the channel.
+  //
+  // Only acknowledged work appears here. If you never told Zentail you had
+  // created it, there is nothing on your side to undo and the units simply
+  // leave ListNeedToShip.
+  //
+  // A partial cancellation puts the same fulfillment order in **both** queues:
+  // cancel the quantities named here, ship what ListNeedToShip still shows.
+  rpc ListNeedToCancel(ListNeedToCancelRequest)
+      returns (ListNeedToCancelResponse) {
+    option (google.api.http) = {
+      get : "/v2/shipping/need_to_cancel"
+    };
+  }
+
+  // GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or
+  // is not in. For troubleshooting and for reconciling after a crash.
+  rpc GetFulfillmentOrder(GetFulfillmentOrderRequest)
+      returns (FulfillmentOrder) {
+    option (google.api.http) = {
+      get : "/v2/shipping/fulfillment_order"
+    };
+  }
+
+  // AcknowledgeFulfillmentOrders records the identifier you gave the work on
+  // your own side. It does **not** drain ListNeedToShip — you still owe the
+  // shipment — and it is not required before shipping.
+  //
+  // Two reasons to call it. It is how a crash between "created it on my side"
+  // and "told Zentail" becomes recoverable: the fulfillment order is still in
+  // ListNeedToShip, and the absence of your id there tells you to reconcile
+  // before creating a duplicate. And it is what puts the work into
+  // ListNeedToCancel if Zentail later needs it pulled back.
+  rpc AcknowledgeFulfillmentOrders(AcknowledgeFulfillmentOrdersRequest)
+      returns (AcknowledgeFulfillmentOrdersResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/fulfillment_orders/acknowledge"
+      body : "*"
+    };
+  }
+
+  // ConfirmShipments reports packages that have shipped, draining the shipped
+  // quantities from ListNeedToShip.
+  //
+  // Idempotent on external_shipment_id: replaying a shipment is a no-op, so a
+  // retry after a timeout can never double-ship.
+  rpc ConfirmShipments(ConfirmShipmentsRequest)
+      returns (ConfirmShipmentsResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/shipments"
+      body : "*"
+    };
+  }
+
+  // ConfirmCancellations reports that you have pulled work back on your side,
+  // draining it from ListNeedToCancel.
+  //
+  // Confirm only what you actually cancelled. If a unit has already shipped and
+  // cannot be recalled, say so with `already_shipped` rather than confirming —
+  // Zentail needs to know the difference to keep the customer order right.
+  rpc ConfirmCancellations(ConfirmCancellationsRequest)
+      returns (ConfirmCancellationsResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/fulfillment_orders/confirm_cancellations"
+      body : "*"
+    };
+  }
+
+  // RejectFulfillmentOrders tells Zentail you cannot fulfil work it asked for —
+  // out of stock, damaged, address undeliverable. This is the other direction
+  // from ConfirmCancellations: there, Zentail asked; here, you are declining.
+  //
+  // Zentail reroutes the work or surfaces it to the user, and it leaves
+  // ListNeedToShip.
+  rpc RejectFulfillmentOrders(RejectFulfillmentOrdersRequest)
+      returns (RejectFulfillmentOrdersResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/fulfillment_orders/reject"
+      body : "*"
+    };
+  }
+
+  // RaiseAlerts raises alerts against fulfillment orders, using the same alert
+  // model the rest of Zentail already shows on a customer order.
+  //
+  // Idempotent by design: Zentail refuses a second open alert of the same type
+  // on the same order, so a poller can raise the same condition every pass
+  // without creating noise. No client-side "have I already alerted?"
+  // bookkeeping.
+  //
+  // An alert is not a substitute for rejecting. Raise one to explain a delay;
+  // reject when you are not going to ship.
+  rpc RaiseAlerts(RaiseAlertsRequest) returns (RaiseAlertsResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/fulfillment_orders/alerts"
+      body : "*"
+    };
+  }
+
+  // ResolveAlerts resolves alerts **this integration raised**, recording why.
+  //
+  // Scoping matters: an alert of the same type raised by Zentail itself, or by
+  // another integration, on the same order survives. Resolving by type alone
+  // would let one caller silently clear another's alerts.
+  rpc ResolveAlerts(ResolveAlertsRequest) returns (ResolveAlertsResponse) {
+    option (google.api.http) = {
+      post : "/v2/shipping/fulfillment_orders/alerts/resolve"
+      body : "*"
+    };
+  }
+
+  // IntegrationStatus returns diagnostic checks for the caller's integration —
+  // whether warehouses are bound, whether either queue is being drained, and
+  // whether anything has been sitting in one for too long.
+  rpc IntegrationStatus(IntegrationStatusRequest)
+      returns (IntegrationStatusResponse) {
+    option (google.api.http) = {
+      get : "/v2/shipping/status"
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Queues
+// ---------------------------------------------------------------------------
+
+// Paging for a queue. Cursor and page size only — a queue has no "since",
+// because it is drained by confirming rather than by advancing a clock.
+message ListNeedToShipRequest {
+  // Leave empty for the first page; pass next_cursor thereafter.
+  string cursor = 1;
+  // Server-capped. Omit for the default.
+  int32 page_size = 2;
+}
+
+message ListNeedToShipResponse {
+  repeated FulfillmentOrder orders = 1;
+  // Empty when the page is the last one.
+  string next_cursor = 2;
+}
+
+message ListNeedToCancelRequest {
+  string cursor = 1;
+  int32 page_size = 2;
+}
+
+message ListNeedToCancelResponse {
+  repeated CancellationRequest cancellations = 1;
+  string next_cursor = 2;
+}
+
+// CancellationRequest is Zentail asking for work back.
+message CancellationRequest {
+  string fulfillment_order_id = 1;
+  // Your identifier, from the acknowledgement — the handle you need to find it
+  // on your own side.
+  string external_order_id = 2;
+  string order_number = 3;
+  string warehouse_unique_id = 4;
+  // Why, so it can be shown to a warehouse operator.
+  CancellationReason reason = 5;
+  // The quantities to pull back. A partial cancellation lists only some lines,
+  // or a lower quantity than the fulfillment order carries — ship the rest.
+  repeated FulfillmentOrderLine lines = 6;
+  google.protobuf.Timestamp requested_ts = 7;
+}
+
+enum CancellationReason {
+  CANCELLATION_REASON_UNSPECIFIED = 0;
+  // Re-routed to a different warehouse.
+  CANCELLATION_REASON_REROUTED = 1;
+  // Cancelled by the buyer.
+  CANCELLATION_REASON_BUYER_CANCELLED = 2;
+  // Cancelled by the sales channel.
+  CANCELLATION_REASON_CHANNEL_CANCELLED = 3;
+  // Cancelled by a Zentail user.
+  CANCELLATION_REASON_MERCHANT_CANCELLED = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Fulfillment orders
+// ---------------------------------------------------------------------------
+
+message GetFulfillmentOrderRequest {
+  // Exactly one must be set. Note that order_number is **not** an identifier
+  // here: one customer order can produce two fulfillment orders for the same
+  // integration, so it does not uniquely identify work.
+  oneof identifier {
+    string fulfillment_order_id = 1;
+    string external_order_id = 2;
+  }
+}
+
+// FulfillmentOrder is a lean view of the work: only the lines routed to one of
+// the caller's warehouses, with the quantities routed there.
+message FulfillmentOrder {
+  // Zentail's identifier for this unit of work, and the handle for every write
+  // in this API. Stable for the life of the fulfillment order.
+  string fulfillment_order_id = 1;
+  // The customer order this came from. For display and correlation only — it is
+  // not unique to you, and is not accepted as an identifier on any write.
+  string order_number = 2;
+  // Set once you have acknowledged it.
+  string external_order_id = 3;
+  FulfillmentOrderStatus status = 4;
+  // The warehouse these lines are routed to, in your own namespace.
+  string warehouse_unique_id = 5;
+
+  google.protobuf.Timestamp ordered_ts = 6;
+  // When this work was routed to your warehouse.
+  google.protobuf.Timestamp assigned_ts = 7;
+  google.protobuf.Timestamp last_updated_ts = 8;
+  // Deadline for handing the package to the carrier, when the channel sets one.
+  google.protobuf.Timestamp ship_by_ts = 9;
+
+  Address ship_to = 10;
+  string requested_service_level = 11;
+  string buyer_name = 12;
+  string gift_message = 13;
+
+  // Authoritative on every read. Quantities change when Zentail re-routes work
+  // in or out of this warehouse, so never cache them across polls.
+  repeated FulfillmentOrderLine lines = 14;
+
+  // Alerts you currently have open on this fulfillment order. Returned so a
+  // poller can see what it has already raised without keeping its own record —
+  // the same reason Zentail holds external_order_id.
+  repeated Alert open_alerts = 15;
+}
+
+// Status is informational. Do not drive behaviour from it — the queues already
+// say what Zentail wants done, and a status left over from a previous poll is
+// how an integration ends up shipping work it no longer owes.
+enum FulfillmentOrderStatus {
+  FULFILLMENT_ORDER_STATUS_UNSPECIFIED = 0;
+  // Routed to you, not yet acknowledged.
+  FULFILLMENT_ORDER_STATUS_NEW = 1;
+  // Acknowledged and awaiting shipment.
+  FULFILLMENT_ORDER_STATUS_ACCEPTED = 2;
+  FULFILLMENT_ORDER_STATUS_PARTIALLY_SHIPPED = 3;
+  FULFILLMENT_ORDER_STATUS_SHIPPED = 4;
+  FULFILLMENT_ORDER_STATUS_CANCELLED = 5;
+  FULFILLMENT_ORDER_STATUS_PARTIALLY_CANCELLED = 6;
+  // You declined it. Zentail reroutes or surfaces it.
+  FULFILLMENT_ORDER_STATUS_REJECTED = 7;
+}
+
+message FulfillmentOrderLine {
+  // Stable per line; echo it back on shipment, cancellation and rejection.
+  string line_item_id = 1;
+  string sku = 2;
+  string title = 3;
+  // Routed to your warehouse, not the customer order's total.
+  int32 quantity = 4;
+  int32 shipped_quantity = 5;
+  int32 cancelled_quantity = 6;
+}
+
+message Address {
+  string name = 1;
+  string company = 2;
+  string line_1 = 3;
+  string line_2 = 4;
+  string city = 5;
+  string region = 6;
+  string postal_code = 7;
+  string country = 8;
+  string phone = 9;
+  string email = 10;
+}
+
+// ---------------------------------------------------------------------------
+// Acknowledgement
+// ---------------------------------------------------------------------------
+
+message AcknowledgeFulfillmentOrdersRequest {
+  repeated Acknowledgement acknowledgements = 1;
+}
+
+message Acknowledgement {
+  string fulfillment_order_id = 1;
+  // Your own identifier for the work. Unique per integration — Zentail rejects
+  // a duplicate rather than recording it twice, which is what makes a retry
+  // safe.
+  string external_order_id = 2;
+}
+
+message AcknowledgeFulfillmentOrdersResponse {
+  repeated AcknowledgementResult results = 1;
+}
+
+message AcknowledgementResult {
+  string fulfillment_order_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  // True when this external_order_id was already recorded — a replay, not a
+  // conflict. Treat as success.
+  bool already_acknowledged = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Shipments
+// ---------------------------------------------------------------------------
+
+message ConfirmShipmentsRequest { repeated Shipment shipments = 1; }
+
+message Shipment {
+  string fulfillment_order_id = 1;
+  // Your identifier for this package. Idempotency key: a repeat is a no-op.
+  string external_shipment_id = 2;
+  string carrier = 3;
+  string tracking_number = 4;
+  string tracking_url = 5;
+  string service_level = 6;
+  google.protobuf.Timestamp shipped_ts = 7;
+  double shipping_cost = 8;
+  repeated ShipmentLine lines = 9;
+}
+
+message ShipmentLine {
+  string line_item_id = 1;
+  int32 quantity = 2;
+}
+
+message ConfirmShipmentsResponse { repeated ShipmentResult results = 1; }
+
+message ShipmentResult {
+  string fulfillment_order_id = 1;
+  string external_shipment_id = 2;
+  bool success = 3;
+  string error_message = 4;
+  // True when this shipment was already recorded. Treat as success.
+  bool already_recorded = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Cancellation — Zentail asked
+// ---------------------------------------------------------------------------
+
+message ConfirmCancellationsRequest {
+  repeated CancellationConfirmation confirmations = 1;
+}
+
+message CancellationConfirmation {
+  string fulfillment_order_id = 1;
+  // The quantities you actually pulled back. Omit to confirm everything
+  // ListNeedToCancel asked for.
+  repeated ShipmentLine lines = 2;
+  // Set when you could not cancel because the units are already on their way.
+  // Zentail keeps the customer order truthful rather than showing a
+  // cancellation that did not happen; report the shipment through
+  // ConfirmShipments as normal.
+  bool already_shipped = 3;
+}
+
+message ConfirmCancellationsResponse {
+  repeated CancellationResult results = 1;
+}
+
+message CancellationResult {
+  string fulfillment_order_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  // True when this cancellation was already recorded. Treat as success.
+  bool already_recorded = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Rejection — you are declining
+// ---------------------------------------------------------------------------
+
+message RejectFulfillmentOrdersRequest {
+  repeated Rejection rejections = 1;
+}
+
+message Rejection {
+  string fulfillment_order_id = 1;
+  RejectionReason reason = 2;
+  // Free text shown to the user alongside the reason.
+  string detail = 3;
+  // Omit to reject the whole fulfillment order. Naming lines rejects only
+  // those quantities; the rest stays in ListNeedToShip.
+  repeated ShipmentLine lines = 4;
+}
+
+enum RejectionReason {
+  REJECTION_REASON_UNSPECIFIED = 0;
+  REJECTION_REASON_OUT_OF_STOCK = 1;
+  REJECTION_REASON_DAMAGED = 2;
+  REJECTION_REASON_UNDELIVERABLE_ADDRESS = 3;
+  REJECTION_REASON_SKU_NOT_FOUND = 4;
+  REJECTION_REASON_OTHER = 5;
+}
+
+message RejectFulfillmentOrdersResponse {
+  repeated RejectionResult results = 1;
+}
+
+message RejectionResult {
+  string fulfillment_order_id = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Alerts
+//
+// The same alerts users already see on a customer order. Zentail records which
+// integration raised each one, so you can resolve your own without touching
+// anyone else's.
+// ---------------------------------------------------------------------------
+
+message RaiseAlertsRequest { repeated Alert alerts = 1; }
+
+message Alert {
+  string fulfillment_order_id = 1;
+  AlertType type = 2;
+  // Shown to the user. Say what is wrong and what would fix it.
+  string message = 3;
+  // Optional: scope the alert to one line.
+  string line_item_id = 4;
+}
+
+// AlertType maps to Zentail's customer-order alert types. Only the types a
+// fulfillment integration can legitimately raise are exposed.
+enum AlertType {
+  ALERT_TYPE_UNSPECIFIED = 0;
+  // Something is blocking fulfilment but you have not given up on it. If you
+  // have, reject instead.
+  ALERT_TYPE_FULFILL = 1;
+  // Will miss, or has missed, the ship-by deadline.
+  ALERT_TYPE_LATE_SHIPMENT = 2;
+  // Shipped but the package is lost in transit.
+  ALERT_TYPE_LOST = 3;
+  ALERT_TYPE_OTHER = 4;
+}
+
+message RaiseAlertsResponse { repeated AlertResult results = 1; }
+
+message AlertResult {
+  string fulfillment_order_id = 1;
+  AlertType type = 2;
+  bool success = 3;
+  string error_message = 4;
+  // True when an open alert of this type already existed, so nothing was
+  // created. Treat as success — this is the expected steady state for a poller
+  // re-raising a condition that has not gone away.
+  bool already_open = 5;
+}
+
+message ResolveAlertsRequest { repeated AlertResolution resolutions = 1; }
+
+message AlertResolution {
+  string fulfillment_order_id = 1;
+  AlertType type = 2;
+  // Why it is resolved. Stored alongside the alert and shown to the user.
+  string resolution = 3;
+}
+
+message ResolveAlertsResponse { repeated AlertResult results = 1; }
+
+// ---------------------------------------------------------------------------
+// Status
+// ---------------------------------------------------------------------------
+
+message IntegrationStatusRequest {}
+
+message IntegrationStatusResponse { repeated Check checks = 1; }
+
+message Check {
+  string name = 1;
+  CheckState state = 2;
+  string message = 3;
+}
+
+enum CheckState {
+  CHECK_STATE_UNSPECIFIED = 0;
+  CHECK_STATE_PASS = 1;
+  CHECK_STATE_WARN = 2;
+  CHECK_STATE_FAIL = 3;
+}

@@ -1,0 +1,1036 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Fulfillment Integration API",
+    "version": "v2"
+  },
+  "tags": [
+    {
+      "name": "FulfillmentIntegrationService",
+      "description": "Drain two queues: ship what Zentail asks you to ship, and cancel what it asks you to pull back. Inventory has its own contract — see the Inventory Integration API."
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v2/shipping/fulfillment_order": {
+      "get": {
+        "summary": "GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or\nis not in. For troubleshooting and for reconciling after a crash.",
+        "operationId": "FulfillmentIntegrationService_GetFulfillmentOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiFulfillmentOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fulfillmentOrderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "externalOrderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/fulfillment_orders/acknowledge": {
+      "post": {
+        "summary": "AcknowledgeFulfillmentOrders records the identifier you gave the work on\nyour own side. It does **not** drain ListNeedToShip — you still owe the\nshipment — and it is not required before shipping.",
+        "description": "Two reasons to call it. It is how a crash between \"created it on my side\"\nand \"told Zentail\" becomes recoverable: the fulfillment order is still in\nListNeedToShip, and the absence of your id there tells you to reconcile\nbefore creating a duplicate. And it is what puts the work into\nListNeedToCancel if Zentail later needs it pulled back.",
+        "operationId": "FulfillmentIntegrationService_AcknowledgeFulfillmentOrders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiAcknowledgeFulfillmentOrdersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiAcknowledgeFulfillmentOrdersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/fulfillment_orders/alerts": {
+      "post": {
+        "summary": "RaiseAlerts raises alerts against fulfillment orders, using the same alert\nmodel the rest of Zentail already shows on a customer order.",
+        "description": "Idempotent by design: Zentail refuses a second open alert of the same type\non the same order, so a poller can raise the same condition every pass\nwithout creating noise. No client-side \"have I already alerted?\"\nbookkeeping.\n\nAn alert is not a substitute for rejecting. Raise one to explain a delay;\nreject when you are not going to ship.",
+        "operationId": "FulfillmentIntegrationService_RaiseAlerts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiRaiseAlertsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiRaiseAlertsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/fulfillment_orders/alerts/resolve": {
+      "post": {
+        "summary": "ResolveAlerts resolves alerts **this integration raised**, recording why.",
+        "description": "Scoping matters: an alert of the same type raised by Zentail itself, or by\nanother integration, on the same order survives. Resolving by type alone\nwould let one caller silently clear another's alerts.",
+        "operationId": "FulfillmentIntegrationService_ResolveAlerts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiResolveAlertsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiResolveAlertsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/fulfillment_orders/confirm_cancellations": {
+      "post": {
+        "summary": "ConfirmCancellations reports that you have pulled work back on your side,\ndraining it from ListNeedToCancel.",
+        "description": "Confirm only what you actually cancelled. If a unit has already shipped and\ncannot be recalled, say so with `already_shipped` rather than confirming —\nZentail needs to know the difference to keep the customer order right.",
+        "operationId": "FulfillmentIntegrationService_ConfirmCancellations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiConfirmCancellationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiConfirmCancellationsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/fulfillment_orders/reject": {
+      "post": {
+        "summary": "RejectFulfillmentOrders tells Zentail you cannot fulfil work it asked for —\nout of stock, damaged, address undeliverable. This is the other direction\nfrom ConfirmCancellations: there, Zentail asked; here, you are declining.",
+        "description": "Zentail reroutes the work or surfaces it to the user, and it leaves\nListNeedToShip.",
+        "operationId": "FulfillmentIntegrationService_RejectFulfillmentOrders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiRejectFulfillmentOrdersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiRejectFulfillmentOrdersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/need_to_cancel": {
+      "get": {
+        "summary": "ListNeedToCancel returns fulfillment orders you have acknowledged that\nZentail now wants pulled back — re-routed to another warehouse, or\ncancelled by the buyer or the channel.",
+        "description": "Only acknowledged work appears here. If you never told Zentail you had\ncreated it, there is nothing on your side to undo and the units simply\nleave ListNeedToShip.\n\nA partial cancellation puts the same fulfillment order in **both** queues:\ncancel the quantities named here, ship what ListNeedToShip still shows.",
+        "operationId": "FulfillmentIntegrationService_ListNeedToCancel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiListNeedToCancelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/need_to_ship": {
+      "get": {
+        "summary": "ListNeedToShip returns fulfillment orders you owe a shipment on: work\nrouted to your warehouses and not yet shipped or cancelled.",
+        "description": "New work and re-routed work look the same here, which is the point. A\npartial re-route reduces a line's quantity rather than removing the\nfulfillment order, so `lines` is authoritative on every read and must not\nbe cached across polls.\n\nAn order leaves this queue when its lines are shipped, when Zentail\ncancels it, or when you reject it. Acknowledging does not remove it — you\nstill owe the shipment.",
+        "operationId": "FulfillmentIntegrationService_ListNeedToShip",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiListNeedToShipResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "description": "Leave empty for the first page; pass next_cursor thereafter.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "Server-capped. Omit for the default.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/shipments": {
+      "post": {
+        "summary": "ConfirmShipments reports packages that have shipped, draining the shipped\nquantities from ListNeedToShip.",
+        "description": "Idempotent on external_shipment_id: replaying a shipment is a no-op, so a\nretry after a timeout can never double-ship.",
+        "operationId": "FulfillmentIntegrationService_ConfirmShipments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiConfirmShipmentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/shipping_apiConfirmShipmentsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/shipping/status": {
+      "get": {
+        "summary": "IntegrationStatus returns diagnostic checks for the caller's integration —\nwhether warehouses are bound, whether either queue is being drained, and\nwhether anything has been sitting in one for too long.",
+        "operationId": "FulfillmentIntegrationService_IntegrationStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiIntegrationStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "FulfillmentIntegrationService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "shipping_apiAcknowledgeFulfillmentOrdersRequest": {
+      "type": "object",
+      "properties": {
+        "acknowledgements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAcknowledgement"
+          }
+        }
+      }
+    },
+    "shipping_apiAcknowledgeFulfillmentOrdersResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAcknowledgementResult"
+          }
+        }
+      }
+    },
+    "shipping_apiAcknowledgement": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "externalOrderId": {
+          "type": "string",
+          "description": "Your own identifier for the work. Unique per integration — Zentail rejects\na duplicate rather than recording it twice, which is what makes a retry\nsafe."
+        }
+      }
+    },
+    "shipping_apiAcknowledgementResult": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "alreadyAcknowledged": {
+          "type": "boolean",
+          "description": "True when this external_order_id was already recorded — a replay, not a\nconflict. Treat as success."
+        }
+      }
+    },
+    "shipping_apiAddress": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "line1": {
+          "type": "string"
+        },
+        "line2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "shipping_apiAlert": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/shipping_apiAlertType"
+        },
+        "message": {
+          "type": "string",
+          "description": "Shown to the user. Say what is wrong and what would fix it."
+        },
+        "lineItemId": {
+          "type": "string",
+          "description": "Optional: scope the alert to one line."
+        }
+      }
+    },
+    "shipping_apiAlertResolution": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/shipping_apiAlertType"
+        },
+        "resolution": {
+          "type": "string",
+          "description": "Why it is resolved. Stored alongside the alert and shown to the user."
+        }
+      }
+    },
+    "shipping_apiAlertResult": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/shipping_apiAlertType"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "alreadyOpen": {
+          "type": "boolean",
+          "description": "True when an open alert of this type already existed, so nothing was\ncreated. Treat as success — this is the expected steady state for a poller\nre-raising a condition that has not gone away."
+        }
+      }
+    },
+    "shipping_apiAlertType": {
+      "type": "string",
+      "enum": [
+        "ALERT_TYPE_UNSPECIFIED",
+        "ALERT_TYPE_FULFILL",
+        "ALERT_TYPE_LATE_SHIPMENT",
+        "ALERT_TYPE_LOST",
+        "ALERT_TYPE_OTHER"
+      ],
+      "default": "ALERT_TYPE_UNSPECIFIED",
+      "description": "AlertType maps to Zentail's customer-order alert types. Only the types a\nfulfillment integration can legitimately raise are exposed.\n\n - ALERT_TYPE_FULFILL: Something is blocking fulfilment but you have not given up on it. If you\nhave, reject instead.\n - ALERT_TYPE_LATE_SHIPMENT: Will miss, or has missed, the ship-by deadline.\n - ALERT_TYPE_LOST: Shipped but the package is lost in transit."
+    },
+    "shipping_apiCancellationConfirmation": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiShipmentLine"
+          },
+          "description": "The quantities you actually pulled back. Omit to confirm everything\nListNeedToCancel asked for."
+        },
+        "alreadyShipped": {
+          "type": "boolean",
+          "description": "Set when you could not cancel because the units are already on their way.\nZentail keeps the customer order truthful rather than showing a\ncancellation that did not happen; report the shipment through\nConfirmShipments as normal."
+        }
+      }
+    },
+    "shipping_apiCancellationReason": {
+      "type": "string",
+      "enum": [
+        "CANCELLATION_REASON_UNSPECIFIED",
+        "CANCELLATION_REASON_REROUTED",
+        "CANCELLATION_REASON_BUYER_CANCELLED",
+        "CANCELLATION_REASON_CHANNEL_CANCELLED",
+        "CANCELLATION_REASON_MERCHANT_CANCELLED"
+      ],
+      "default": "CANCELLATION_REASON_UNSPECIFIED",
+      "description": " - CANCELLATION_REASON_REROUTED: Re-routed to a different warehouse.\n - CANCELLATION_REASON_BUYER_CANCELLED: Cancelled by the buyer.\n - CANCELLATION_REASON_CHANNEL_CANCELLED: Cancelled by the sales channel.\n - CANCELLATION_REASON_MERCHANT_CANCELLED: Cancelled by a Zentail user."
+    },
+    "shipping_apiCancellationRequest": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "externalOrderId": {
+          "type": "string",
+          "description": "Your identifier, from the acknowledgement — the handle you need to find it\non your own side."
+        },
+        "orderNumber": {
+          "type": "string"
+        },
+        "warehouseUniqueId": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/definitions/shipping_apiCancellationReason",
+          "description": "Why, so it can be shown to a warehouse operator."
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiFulfillmentOrderLine"
+          },
+          "description": "The quantities to pull back. A partial cancellation lists only some lines,\nor a lower quantity than the fulfillment order carries — ship the rest."
+        },
+        "requestedTs": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "CancellationRequest is Zentail asking for work back."
+    },
+    "shipping_apiCancellationResult": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "alreadyRecorded": {
+          "type": "boolean",
+          "description": "True when this cancellation was already recorded. Treat as success."
+        }
+      }
+    },
+    "shipping_apiCheck": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/shipping_apiCheckState"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "shipping_apiCheckState": {
+      "type": "string",
+      "enum": [
+        "CHECK_STATE_UNSPECIFIED",
+        "CHECK_STATE_PASS",
+        "CHECK_STATE_WARN",
+        "CHECK_STATE_FAIL"
+      ],
+      "default": "CHECK_STATE_UNSPECIFIED"
+    },
+    "shipping_apiConfirmCancellationsRequest": {
+      "type": "object",
+      "properties": {
+        "confirmations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiCancellationConfirmation"
+          }
+        }
+      }
+    },
+    "shipping_apiConfirmCancellationsResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiCancellationResult"
+          }
+        }
+      }
+    },
+    "shipping_apiConfirmShipmentsRequest": {
+      "type": "object",
+      "properties": {
+        "shipments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiShipment"
+          }
+        }
+      }
+    },
+    "shipping_apiConfirmShipmentsResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiShipmentResult"
+          }
+        }
+      }
+    },
+    "shipping_apiFulfillmentOrder": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string",
+          "description": "Zentail's identifier for this unit of work, and the handle for every write\nin this API. Stable for the life of the fulfillment order."
+        },
+        "orderNumber": {
+          "type": "string",
+          "description": "The customer order this came from. For display and correlation only — it is\nnot unique to you, and is not accepted as an identifier on any write."
+        },
+        "externalOrderId": {
+          "type": "string",
+          "description": "Set once you have acknowledged it."
+        },
+        "status": {
+          "$ref": "#/definitions/shipping_apiFulfillmentOrderStatus"
+        },
+        "warehouseUniqueId": {
+          "type": "string",
+          "description": "The warehouse these lines are routed to, in your own namespace."
+        },
+        "orderedTs": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "assignedTs": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this work was routed to your warehouse."
+        },
+        "lastUpdatedTs": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "shipByTs": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Deadline for handing the package to the carrier, when the channel sets one."
+        },
+        "shipTo": {
+          "$ref": "#/definitions/shipping_apiAddress"
+        },
+        "requestedServiceLevel": {
+          "type": "string"
+        },
+        "buyerName": {
+          "type": "string"
+        },
+        "giftMessage": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiFulfillmentOrderLine"
+          },
+          "description": "Authoritative on every read. Quantities change when Zentail re-routes work\nin or out of this warehouse, so never cache them across polls."
+        },
+        "openAlerts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAlert"
+          },
+          "description": "Alerts you currently have open on this fulfillment order. Returned so a\npoller can see what it has already raised without keeping its own record —\nthe same reason Zentail holds external_order_id."
+        }
+      },
+      "description": "FulfillmentOrder is a lean view of the work: only the lines routed to one of\nthe caller's warehouses, with the quantities routed there."
+    },
+    "shipping_apiFulfillmentOrderLine": {
+      "type": "object",
+      "properties": {
+        "lineItemId": {
+          "type": "string",
+          "description": "Stable per line; echo it back on shipment, cancellation and rejection."
+        },
+        "sku": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Routed to your warehouse, not the customer order's total."
+        },
+        "shippedQuantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "cancelledQuantity": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "shipping_apiFulfillmentOrderStatus": {
+      "type": "string",
+      "enum": [
+        "FULFILLMENT_ORDER_STATUS_UNSPECIFIED",
+        "FULFILLMENT_ORDER_STATUS_NEW",
+        "FULFILLMENT_ORDER_STATUS_ACCEPTED",
+        "FULFILLMENT_ORDER_STATUS_PARTIALLY_SHIPPED",
+        "FULFILLMENT_ORDER_STATUS_SHIPPED",
+        "FULFILLMENT_ORDER_STATUS_CANCELLED",
+        "FULFILLMENT_ORDER_STATUS_PARTIALLY_CANCELLED",
+        "FULFILLMENT_ORDER_STATUS_REJECTED"
+      ],
+      "default": "FULFILLMENT_ORDER_STATUS_UNSPECIFIED",
+      "description": "Status is informational. Do not drive behaviour from it — the queues already\nsay what Zentail wants done, and a status left over from a previous poll is\nhow an integration ends up shipping work it no longer owes.\n\n - FULFILLMENT_ORDER_STATUS_NEW: Routed to you, not yet acknowledged.\n - FULFILLMENT_ORDER_STATUS_ACCEPTED: Acknowledged and awaiting shipment.\n - FULFILLMENT_ORDER_STATUS_REJECTED: You declined it. Zentail reroutes or surfaces it."
+    },
+    "shipping_apiIntegrationStatusResponse": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiCheck"
+          }
+        }
+      }
+    },
+    "shipping_apiListNeedToCancelResponse": {
+      "type": "object",
+      "properties": {
+        "cancellations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiCancellationRequest"
+          }
+        },
+        "nextCursor": {
+          "type": "string"
+        }
+      }
+    },
+    "shipping_apiListNeedToShipResponse": {
+      "type": "object",
+      "properties": {
+        "orders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiFulfillmentOrder"
+          }
+        },
+        "nextCursor": {
+          "type": "string",
+          "description": "Empty when the page is the last one."
+        }
+      }
+    },
+    "shipping_apiRaiseAlertsRequest": {
+      "type": "object",
+      "properties": {
+        "alerts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAlert"
+          }
+        }
+      }
+    },
+    "shipping_apiRaiseAlertsResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAlertResult"
+          }
+        }
+      }
+    },
+    "shipping_apiRejectFulfillmentOrdersRequest": {
+      "type": "object",
+      "properties": {
+        "rejections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiRejection"
+          }
+        }
+      }
+    },
+    "shipping_apiRejectFulfillmentOrdersResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiRejectionResult"
+          }
+        }
+      }
+    },
+    "shipping_apiRejection": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/definitions/shipping_apiRejectionReason"
+        },
+        "detail": {
+          "type": "string",
+          "description": "Free text shown to the user alongside the reason."
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiShipmentLine"
+          },
+          "description": "Omit to reject the whole fulfillment order. Naming lines rejects only\nthose quantities; the rest stays in ListNeedToShip."
+        }
+      }
+    },
+    "shipping_apiRejectionReason": {
+      "type": "string",
+      "enum": [
+        "REJECTION_REASON_UNSPECIFIED",
+        "REJECTION_REASON_OUT_OF_STOCK",
+        "REJECTION_REASON_DAMAGED",
+        "REJECTION_REASON_UNDELIVERABLE_ADDRESS",
+        "REJECTION_REASON_SKU_NOT_FOUND",
+        "REJECTION_REASON_OTHER"
+      ],
+      "default": "REJECTION_REASON_UNSPECIFIED"
+    },
+    "shipping_apiRejectionResult": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        }
+      }
+    },
+    "shipping_apiResolveAlertsRequest": {
+      "type": "object",
+      "properties": {
+        "resolutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAlertResolution"
+          }
+        }
+      }
+    },
+    "shipping_apiResolveAlertsResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiAlertResult"
+          }
+        }
+      }
+    },
+    "shipping_apiShipment": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "externalShipmentId": {
+          "type": "string",
+          "description": "Your identifier for this package. Idempotency key: a repeat is a no-op."
+        },
+        "carrier": {
+          "type": "string"
+        },
+        "trackingNumber": {
+          "type": "string"
+        },
+        "trackingUrl": {
+          "type": "string"
+        },
+        "serviceLevel": {
+          "type": "string"
+        },
+        "shippedTs": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "shippingCost": {
+          "type": "number",
+          "format": "double"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiShipmentLine"
+          }
+        }
+      }
+    },
+    "shipping_apiShipmentLine": {
+      "type": "object",
+      "properties": {
+        "lineItemId": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "shipping_apiShipmentResult": {
+      "type": "object",
+      "properties": {
+        "fulfillmentOrderId": {
+          "type": "string"
+        },
+        "externalShipmentId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "alreadyRecorded": {
+          "type": "boolean",
+          "description": "True when this shipment was already recorded. Treat as success."
+        }
+      }
+    }
+  }
+}
