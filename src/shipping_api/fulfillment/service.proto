@@ -277,7 +277,7 @@ message CancellationRequest {
   CancellationReason reason = 5;
   // The quantities to pull back. A partial cancellation lists only some lines,
   // or a lower quantity than the fulfillment order carries — ship the rest.
-  repeated FulfillmentOrderLine lines = 6;
+  repeated CancellationLine lines = 6;
   google.protobuf.Timestamp requested_ts = 7;
 }
 
@@ -359,6 +359,20 @@ enum FulfillmentOrderStatus {
   FULFILLMENT_ORDER_STATUS_PARTIALLY_CANCELLED = 6;
   // You declined it. Zentail reroutes or surfaces it.
   FULFILLMENT_ORDER_STATUS_REJECTED = 7;
+}
+
+// CancellationLine is deliberately not a FulfillmentOrderLine. On a
+// fulfillment order, quantity means "routed to your warehouse"; on a cancel it
+// means "pull this many back", and shipped_quantity / cancelled_quantity have
+// no meaning on an instruction at all. An integration that reuses one line
+// parser across both would read the wrong number.
+message CancellationLine {
+  // Echoes the fulfillment order's line, so a partial cancel names exactly
+  // which line it reduces.
+  string line_item_id = 1;
+  string sku = 2;
+  // How many units to pull back — not the line's routed total.
+  int32 quantity = 3;
 }
 
 message FulfillmentOrderLine {
@@ -573,7 +587,22 @@ message AlertResolution {
   string resolution = 3;
 }
 
-message ResolveAlertsResponse { repeated AlertResult results = 1; }
+message ResolveAlertsResponse { repeated AlertResolveResult results = 1; }
+
+// AlertResolveResult mirrors AlertResult but carries the resolve path's own
+// soft-success flag. AlertResult's already_open only makes sense when raising;
+// on a retried resolve it would be nonsense, leaving a caller that timed out
+// and retried with no honest way to read success.
+message AlertResolveResult {
+  string fulfillment_order_id = 1;
+  AlertType type = 2;
+  bool success = 3;
+  string error_message = 4;
+  // True when no open alert of this type remained, so nothing changed. Treat as
+  // success: it is what a retry after a timeout sees, and what a poller sees
+  // when a user resolved the alert by hand first.
+  bool already_resolved = 5;
+}
 
 // ---------------------------------------------------------------------------
 // Status
@@ -593,6 +622,14 @@ message Check {
   // Who observed this. Zentail sets it; an integration filling it in on a
   // WarehouseStatus response has it overwritten with INTEGRATION.
   CheckSource source = 4;
+  // Which warehouse this check is about, when it is about one. Set by Zentail
+  // as it folds a WarehouseStatus response in, and on a check reporting that a
+  // warehouse could not be reached.
+  //
+  // Without it the fold is lossy: two warehouses returning the same check name
+  // are indistinguishable, and anything matching on name alone cannot say which
+  // one is broken. Empty on checks about the integration as a whole.
+  string warehouse_unique_id = 5;
 }
 
 enum CheckSource {
