@@ -8,6 +8,10 @@
     {
       "name": "FulfillmentIntegrationService",
       "description": "Drain two queues: ship what Zentail asks you to ship, and cancel what it asks you to pull back. Inventory has its own contract — see the Inventory Integration API."
+    },
+    {
+      "name": "WarehouseService",
+      "description": "Implemented by the integration. Zentail calls this to ask the integration about its own health."
     }
   ],
   "consumes": [
@@ -341,6 +345,7 @@
     "/v2/shipping/status": {
       "get": {
         "summary": "IntegrationStatus returns diagnostic checks for the caller's integration —\nwhether warehouses are bound, whether either queue is being drained, and\nwhether anything has been sitting in one for too long.",
+        "description": "If the integration implements WarehouseService, Zentail also asks it about\neach warehouse and folds those checks in, so one call answers \"is this\nworking\" from both sides.",
         "operationId": "FulfillmentIntegrationService_IntegrationStatus",
         "responses": {
           "200": {
@@ -358,6 +363,38 @@
         },
         "tags": [
           "FulfillmentIntegrationService"
+        ]
+      }
+    },
+    "/v2/warehouse/shipping_status/{warehouseUniqueId}": {
+      "get": {
+        "summary": "WarehouseStatus returns the integration's own diagnostic checks for one\nwarehouse — the things only it can see, such as expiring credentials, a\ncarrier account problem, or a location it can no longer reach.",
+        "operationId": "WarehouseService_WarehouseStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/shipping_apiWarehouseStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "warehouseUniqueId",
+            "description": "The warehouse being asked about, named with the integration's own\nidentifier — the same value that appears on a fulfillment order.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "WarehouseService"
         ]
       }
     }
@@ -631,15 +668,31 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Stable identifier, not prose — an operator or an alert matches on this, so\nit must not change when the wording does. Lower_snake_case by convention."
         },
         "state": {
           "$ref": "#/definitions/shipping_apiCheckState"
         },
         "message": {
-          "type": "string"
+          "type": "string",
+          "description": "Prose for a human. Say what is wrong and what would fix it."
+        },
+        "source": {
+          "$ref": "#/definitions/shipping_apiCheckSource",
+          "description": "Who observed this. Zentail sets it; an integration filling it in on a\nWarehouseStatus response has it overwritten with INTEGRATION."
         }
       }
+    },
+    "shipping_apiCheckSource": {
+      "type": "string",
+      "enum": [
+        "CHECK_SOURCE_UNSPECIFIED",
+        "CHECK_SOURCE_ZENTAIL",
+        "CHECK_SOURCE_INTEGRATION"
+      ],
+      "default": "CHECK_SOURCE_UNSPECIFIED",
+      "description": " - CHECK_SOURCE_ZENTAIL: Zentail observed this from the outside.\n - CHECK_SOURCE_INTEGRATION: The integration reported this about itself."
     },
     "shipping_apiCheckState": {
       "type": "string",
@@ -1029,6 +1082,17 @@
         "alreadyRecorded": {
           "type": "boolean",
           "description": "True when this shipment was already recorded. Treat as success."
+        }
+      }
+    },
+    "shipping_apiWarehouseStatusResponse": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/shipping_apiCheck"
+          }
         }
       }
     }

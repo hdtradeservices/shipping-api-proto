@@ -94,6 +94,10 @@ type FulfillmentIntegrationServiceClient interface {
 	// IntegrationStatus returns diagnostic checks for the caller's integration —
 	// whether warehouses are bound, whether either queue is being drained, and
 	// whether anything has been sitting in one for too long.
+	//
+	// If the integration implements WarehouseService, Zentail also asks it about
+	// each warehouse and folds those checks in, so one call answers "is this
+	// working" from both sides.
 	IntegrationStatus(ctx context.Context, in *IntegrationStatusRequest, opts ...grpc.CallOption) (*IntegrationStatusResponse, error)
 }
 
@@ -275,6 +279,10 @@ type FulfillmentIntegrationServiceServer interface {
 	// IntegrationStatus returns diagnostic checks for the caller's integration —
 	// whether warehouses are bound, whether either queue is being drained, and
 	// whether anything has been sitting in one for too long.
+	//
+	// If the integration implements WarehouseService, Zentail also asks it about
+	// each warehouse and folds those checks in, so one call answers "is this
+	// working" from both sides.
 	IntegrationStatus(context.Context, *IntegrationStatusRequest) (*IntegrationStatusResponse, error)
 }
 
@@ -550,6 +558,96 @@ var FulfillmentIntegrationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IntegrationStatus",
 			Handler:    _FulfillmentIntegrationService_IntegrationStatus_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "shipping_api/fulfillment/service.proto",
+}
+
+// WarehouseServiceClient is the client API for WarehouseService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type WarehouseServiceClient interface {
+	// WarehouseStatus returns the integration's own diagnostic checks for one
+	// warehouse — the things only it can see, such as expiring credentials, a
+	// carrier account problem, or a location it can no longer reach.
+	WarehouseStatus(ctx context.Context, in *WarehouseStatusRequest, opts ...grpc.CallOption) (*WarehouseStatusResponse, error)
+}
+
+type warehouseServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewWarehouseServiceClient(cc grpc.ClientConnInterface) WarehouseServiceClient {
+	return &warehouseServiceClient{cc}
+}
+
+func (c *warehouseServiceClient) WarehouseStatus(ctx context.Context, in *WarehouseStatusRequest, opts ...grpc.CallOption) (*WarehouseStatusResponse, error) {
+	out := new(WarehouseStatusResponse)
+	err := c.cc.Invoke(ctx, "/shipping_api.WarehouseService/WarehouseStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// WarehouseServiceServer is the server API for WarehouseService service.
+// All implementations should embed UnimplementedWarehouseServiceServer
+// for forward compatibility
+type WarehouseServiceServer interface {
+	// WarehouseStatus returns the integration's own diagnostic checks for one
+	// warehouse — the things only it can see, such as expiring credentials, a
+	// carrier account problem, or a location it can no longer reach.
+	WarehouseStatus(context.Context, *WarehouseStatusRequest) (*WarehouseStatusResponse, error)
+}
+
+// UnimplementedWarehouseServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedWarehouseServiceServer struct {
+}
+
+func (UnimplementedWarehouseServiceServer) WarehouseStatus(context.Context, *WarehouseStatusRequest) (*WarehouseStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WarehouseStatus not implemented")
+}
+
+// UnsafeWarehouseServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WarehouseServiceServer will
+// result in compilation errors.
+type UnsafeWarehouseServiceServer interface {
+	mustEmbedUnimplementedWarehouseServiceServer()
+}
+
+func RegisterWarehouseServiceServer(s grpc.ServiceRegistrar, srv WarehouseServiceServer) {
+	s.RegisterService(&WarehouseService_ServiceDesc, srv)
+}
+
+func _WarehouseService_WarehouseStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WarehouseStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WarehouseServiceServer).WarehouseStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shipping_api.WarehouseService/WarehouseStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WarehouseServiceServer).WarehouseStatus(ctx, req.(*WarehouseStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// WarehouseService_ServiceDesc is the grpc.ServiceDesc for WarehouseService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var WarehouseService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "shipping_api.WarehouseService",
+	HandlerType: (*WarehouseServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "WarehouseStatus",
+			Handler:    _WarehouseService_WarehouseStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

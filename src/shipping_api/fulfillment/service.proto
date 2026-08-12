@@ -180,6 +180,10 @@ service FulfillmentIntegrationService {
   // IntegrationStatus returns diagnostic checks for the caller's integration —
   // whether warehouses are bound, whether either queue is being drained, and
   // whether anything has been sitting in one for too long.
+  //
+  // If the integration implements WarehouseService, Zentail also asks it about
+  // each warehouse and folds those checks in, so one call answers "is this
+  // working" from both sides.
   rpc IntegrationStatus(IntegrationStatusRequest)
       returns (IntegrationStatusResponse) {
     option (google.api.http) = {
@@ -187,6 +191,50 @@ service FulfillmentIntegrationService {
     };
   }
 }
+
+// WarehouseService is implemented by the integration, not by Zentail.
+//
+// Same shape as listing's SalesChannelService in api-proto, and as the
+// WarehouseService in inventory-api-proto: the integration stands up this
+// service, Zentail dials it, and the answer folds into the surface an operator
+// already reads. Zentail can only observe an integration from the outside — it
+// knows the queue stopped draining, never why.
+//
+// Deliberately separate from RaiseAlerts. An alert is a problem with one
+// fulfillment order, discovered at a moment Zentail cannot predict, so the
+// integration pushes it. A check is the integration's standing health, which is
+// only worth knowing when somebody asks — so Zentail pulls it, and a stale
+// answer is impossible.
+//
+// Zentail calls this while serving IntegrationStatus, so it must be cheap and
+// must not call back into Zentail. If the call fails or times out, Zentail
+// reports that as a failed check rather than failing the status request: an
+// integration that cannot answer "am I healthy" has answered it.
+service WarehouseService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    name : "Warehouse Service",
+    description : "Implemented by the integration. Zentail calls this to ask "
+                  "the integration about its own health."
+  };
+
+  // WarehouseStatus returns the integration's own diagnostic checks for one
+  // warehouse — the things only it can see, such as expiring credentials, a
+  // carrier account problem, or a location it can no longer reach.
+  rpc WarehouseStatus(WarehouseStatusRequest)
+      returns (WarehouseStatusResponse) {
+    option (google.api.http) = {
+      get : "/v2/warehouse/shipping_status/{warehouse_unique_id}"
+    };
+  }
+}
+
+message WarehouseStatusRequest {
+  // The warehouse being asked about, named with the integration's own
+  // identifier — the same value that appears on a fulfillment order.
+  string warehouse_unique_id = 1;
+}
+
+message WarehouseStatusResponse { repeated Check checks = 1; }
 
 // ---------------------------------------------------------------------------
 // Queues
@@ -536,9 +584,23 @@ message IntegrationStatusRequest {}
 message IntegrationStatusResponse { repeated Check checks = 1; }
 
 message Check {
+  // Stable identifier, not prose — an operator or an alert matches on this, so
+  // it must not change when the wording does. Lower_snake_case by convention.
   string name = 1;
   CheckState state = 2;
+  // Prose for a human. Say what is wrong and what would fix it.
   string message = 3;
+  // Who observed this. Zentail sets it; an integration filling it in on a
+  // WarehouseStatus response has it overwritten with INTEGRATION.
+  CheckSource source = 4;
+}
+
+enum CheckSource {
+  CHECK_SOURCE_UNSPECIFIED = 0;
+  // Zentail observed this from the outside.
+  CHECK_SOURCE_ZENTAIL = 1;
+  // The integration reported this about itself.
+  CHECK_SOURCE_INTEGRATION = 2;
 }
 
 enum CheckState {
