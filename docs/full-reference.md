@@ -11,8 +11,10 @@
     - [Address](#shipping_api-Address)
     - [Alert](#shipping_api-Alert)
     - [AlertResolution](#shipping_api-AlertResolution)
+    - [AlertResolveResult](#shipping_api-AlertResolveResult)
     - [AlertResult](#shipping_api-AlertResult)
     - [CancellationConfirmation](#shipping_api-CancellationConfirmation)
+    - [CancellationLine](#shipping_api-CancellationLine)
     - [CancellationRequest](#shipping_api-CancellationRequest)
     - [CancellationResult](#shipping_api-CancellationResult)
     - [Check](#shipping_api-Check)
@@ -187,6 +189,28 @@
 
 
 
+<a name="shipping_api-AlertResolveResult"></a>
+
+### AlertResolveResult
+AlertResolveResult mirrors AlertResult but carries the resolve path&#39;s own
+soft-success flag. AlertResult&#39;s already_open only makes sense when raising;
+on a retried resolve it would be nonsense, leaving a caller that timed out
+and retried with no honest way to read success.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| fulfillment_order_id | [string](#string) |  |  |
+| type | [AlertType](#shipping_api-AlertType) |  |  |
+| success | [bool](#bool) |  |  |
+| error_message | [string](#string) |  |  |
+| already_resolved | [bool](#bool) |  | True when no open alert of this type remained, so nothing changed. Treat as success: it is what a retry after a timeout sees, and what a poller sees when a user resolved the alert by hand first. |
+
+
+
+
+
+
 <a name="shipping_api-AlertResult"></a>
 
 ### AlertResult
@@ -223,6 +247,27 @@
 
 
 
+<a name="shipping_api-CancellationLine"></a>
+
+### CancellationLine
+CancellationLine is deliberately not a FulfillmentOrderLine. On a
+fulfillment order, quantity means &#34;routed to your warehouse&#34;; on a cancel it
+means &#34;pull this many back&#34;, and shipped_quantity / cancelled_quantity have
+no meaning on an instruction at all. An integration that reuses one line
+parser across both would read the wrong number.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| line_item_id | [string](#string) |  | Echoes the fulfillment order&#39;s line, so a partial cancel names exactly which line it reduces. |
+| sku | [string](#string) |  |  |
+| quantity | [int32](#int32) |  | How many units to pull back — not the line&#39;s routed total. |
+
+
+
+
+
+
 <a name="shipping_api-CancellationRequest"></a>
 
 ### CancellationRequest
@@ -236,7 +281,7 @@ CancellationRequest is Zentail asking for work back.
 | order_number | [string](#string) |  |  |
 | warehouse_unique_id | [string](#string) |  |  |
 | reason | [CancellationReason](#shipping_api-CancellationReason) |  | Why, so it can be shown to a warehouse operator. |
-| lines | [FulfillmentOrderLine](#shipping_api-FulfillmentOrderLine) | repeated | The quantities to pull back. A partial cancellation lists only some lines, or a lower quantity than the fulfillment order carries — ship the rest. |
+| lines | [CancellationLine](#shipping_api-CancellationLine) | repeated | The quantities to pull back. A partial cancellation lists only some lines, or a lower quantity than the fulfillment order carries — ship the rest. |
 | requested_ts | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
@@ -274,6 +319,9 @@ CancellationRequest is Zentail asking for work back.
 | state | [CheckState](#shipping_api-CheckState) |  |  |
 | message | [string](#string) |  | Prose for a human. Say what is wrong and what would fix it. |
 | source | [CheckSource](#shipping_api-CheckSource) |  | Who observed this. Zentail sets it; an integration filling it in on a WarehouseStatus response has it overwritten with INTEGRATION. |
+| warehouse_unique_id | [string](#string) |  | Which warehouse this check is about, when it is about one. Set by Zentail as it folds a WarehouseStatus response in, and on a check reporting that a warehouse could not be reached.
+
+Without it the fold is lossy: two warehouses returning the same check name are indistinguishable, and anything matching on name alone cannot say which one is broken. Empty on checks about the integration as a whole. |
 
 
 
@@ -614,7 +662,7 @@ because it is drained by confirming rather than by advancing a clock.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| results | [AlertResult](#shipping_api-AlertResult) | repeated |  |
+| results | [AlertResolveResult](#shipping_api-AlertResolveResult) | repeated |  |
 
 
 
