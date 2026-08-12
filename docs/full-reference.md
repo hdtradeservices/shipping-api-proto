@@ -40,14 +40,18 @@
     - [Shipment](#shipping_api-Shipment)
     - [ShipmentLine](#shipping_api-ShipmentLine)
     - [ShipmentResult](#shipping_api-ShipmentResult)
+    - [WarehouseStatusRequest](#shipping_api-WarehouseStatusRequest)
+    - [WarehouseStatusResponse](#shipping_api-WarehouseStatusResponse)
   
     - [AlertType](#shipping_api-AlertType)
     - [CancellationReason](#shipping_api-CancellationReason)
+    - [CheckSource](#shipping_api-CheckSource)
     - [CheckState](#shipping_api-CheckState)
     - [FulfillmentOrderStatus](#shipping_api-FulfillmentOrderStatus)
     - [RejectionReason](#shipping_api-RejectionReason)
   
     - [FulfillmentIntegrationService](#shipping_api-FulfillmentIntegrationService)
+    - [WarehouseService](#shipping_api-WarehouseService)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -266,9 +270,10 @@ CancellationRequest is Zentail asking for work back.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
+| name | [string](#string) |  | Stable identifier, not prose — an operator or an alert matches on this, so it must not change when the wording does. Lower_snake_case by convention. |
 | state | [CheckState](#shipping_api-CheckState) |  |  |
-| message | [string](#string) |  |  |
+| message | [string](#string) |  | Prose for a human. Say what is wrong and what would fix it. |
+| source | [CheckSource](#shipping_api-CheckSource) |  | Who observed this. Zentail sets it; an integration filling it in on a WarehouseStatus response has it overwritten with INTEGRATION. |
 
 
 
@@ -673,6 +678,36 @@ because it is drained by confirming rather than by advancing a clock.
 
 
 
+
+<a name="shipping_api-WarehouseStatusRequest"></a>
+
+### WarehouseStatusRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| warehouse_unique_id | [string](#string) |  | The warehouse being asked about, named with the integration&#39;s own identifier — the same value that appears on a fulfillment order. |
+
+
+
+
+
+
+<a name="shipping_api-WarehouseStatusResponse"></a>
+
+### WarehouseStatusResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| checks | [Check](#shipping_api-Check) | repeated |  |
+
+
+
+
+
  
 
 
@@ -704,6 +739,19 @@ fulfillment integration can legitimately raise are exposed.
 | CANCELLATION_REASON_BUYER_CANCELLED | 2 | Cancelled by the buyer. |
 | CANCELLATION_REASON_CHANNEL_CANCELLED | 3 | Cancelled by the sales channel. |
 | CANCELLATION_REASON_MERCHANT_CANCELLED | 4 | Cancelled by a Zentail user. |
+
+
+
+<a name="shipping_api-CheckSource"></a>
+
+### CheckSource
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| CHECK_SOURCE_UNSPECIFIED | 0 |  |
+| CHECK_SOURCE_ZENTAIL | 1 | Zentail observed this from the outside. |
+| CHECK_SOURCE_INTEGRATION | 2 | The integration reported this about itself. |
 
 
 
@@ -823,7 +871,36 @@ An alert is not a substitute for rejecting. Raise one to explain a delay; reject
 | ResolveAlerts | [ResolveAlertsRequest](#shipping_api-ResolveAlertsRequest) | [ResolveAlertsResponse](#shipping_api-ResolveAlertsResponse) | ResolveAlerts resolves alerts **this integration raised**, recording why.
 
 Scoping matters: an alert of the same type raised by Zentail itself, or by another integration, on the same order survives. Resolving by type alone would let one caller silently clear another&#39;s alerts. |
-| IntegrationStatus | [IntegrationStatusRequest](#shipping_api-IntegrationStatusRequest) | [IntegrationStatusResponse](#shipping_api-IntegrationStatusResponse) | IntegrationStatus returns diagnostic checks for the caller&#39;s integration — whether warehouses are bound, whether either queue is being drained, and whether anything has been sitting in one for too long. |
+| IntegrationStatus | [IntegrationStatusRequest](#shipping_api-IntegrationStatusRequest) | [IntegrationStatusResponse](#shipping_api-IntegrationStatusResponse) | IntegrationStatus returns diagnostic checks for the caller&#39;s integration — whether warehouses are bound, whether either queue is being drained, and whether anything has been sitting in one for too long.
+
+If the integration implements WarehouseService, Zentail also asks it about each warehouse and folds those checks in, so one call answers &#34;is this working&#34; from both sides. |
+
+
+<a name="shipping_api-WarehouseService"></a>
+
+### WarehouseService
+WarehouseService is implemented by the integration, not by Zentail.
+
+Same shape as listing&#39;s SalesChannelService in api-proto, and as the
+WarehouseService in inventory-api-proto: the integration stands up this
+service, Zentail dials it, and the answer folds into the surface an operator
+already reads. Zentail can only observe an integration from the outside — it
+knows the queue stopped draining, never why.
+
+Deliberately separate from RaiseAlerts. An alert is a problem with one
+fulfillment order, discovered at a moment Zentail cannot predict, so the
+integration pushes it. A check is the integration&#39;s standing health, which is
+only worth knowing when somebody asks — so Zentail pulls it, and a stale
+answer is impossible.
+
+Zentail calls this while serving IntegrationStatus, so it must be cheap and
+must not call back into Zentail. If the call fails or times out, Zentail
+reports that as a failed check rather than failing the status request: an
+integration that cannot answer &#34;am I healthy&#34; has answered it.
+
+| Method Name | Request Type | Response Type | Description |
+| ----------- | ------------ | ------------- | ------------|
+| WarehouseStatus | [WarehouseStatusRequest](#shipping_api-WarehouseStatusRequest) | [WarehouseStatusResponse](#shipping_api-WarehouseStatusResponse) | WarehouseStatus returns the integration&#39;s own diagnostic checks for one warehouse — the things only it can see, such as expiring credentials, a carrier account problem, or a location it can no longer reach. |
 
  
 
