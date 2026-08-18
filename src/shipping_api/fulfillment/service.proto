@@ -307,6 +307,25 @@ message GetFulfillmentOrderRequest {
   }
 }
 
+// Money is an amount and the currency it is in.
+//
+// The amount is a decimal string, not a float or units+nanos. Money in this
+// contract crosses into Shopify's MoneyBagInput, which is itself a decimal
+// string, so a string maps across untouched — no scaling and no rounding at the
+// edge, which is where money bugs come from. Follows the Money already in
+// api-proto's listing contract rather than google.type.Money, for that reason.
+//
+// currency_code travels with every amount rather than sitting once on the
+// order. Multi-currency is real (etp has
+// purchase_orders.non_standard_currencies), and a silently wrong currency is
+// worse than a wrong amount: the number still looks plausible.
+message Money {
+  // Decimal string, e.g. "13.00". Negative for a credit.
+  string amount = 1;
+  // ISO 4217, e.g. "USD".
+  string currency_code = 2;
+}
+
 // FulfillmentOrder is a lean view of the work: only the lines routed to one of
 // the caller's warehouses, with the quantities routed there.
 message FulfillmentOrder {
@@ -342,6 +361,27 @@ message FulfillmentOrder {
   // poller can see what it has already raised without keeping its own record —
   // the same reason Zentail holds external_order_id.
   repeated Alert open_alerts = 15;
+
+  // What the buyer paid to have the order shipped, and the tax on it. Order
+  // level, not per line: the buyer pays it once however the order splits, so a
+  // fulfillment order covering part of an order carries the whole figure and it
+  // must not be summed across siblings.
+  Money shipping_price = 16;
+  Money shipping_tax = 17;
+  // Discount applied to the order as a whole.
+  Money discount = 18;
+
+  // What the buyer actually paid, in total, on the channel they bought from.
+  //
+  // Deliberately separate from the lines rather than derived from them. It is
+  // the transaction, and it can legitimately disagree with the composed total:
+  // an order part-refunded, cancelled, or not yet paid. Measured across ~37k
+  // real orders it matches the composition about 89% of the time, and the
+  // remainder is mostly lifecycle. per ZEN-4048.
+  //
+  // So record payment from this, and compose the order from the lines. Do not
+  // reconcile one into the other by inventing an adjustment line.
+  Money total_payment = 19;
 }
 
 // Status is informational. Do not drive behaviour from it — the queues already
@@ -384,6 +424,15 @@ message FulfillmentOrderLine {
   int32 quantity = 4;
   int32 shipped_quantity = 5;
   int32 cancelled_quantity = 6;
+
+  // What the buyer paid per unit, before tax. Not Zentail's cost.
+  //
+  // Send this on to a store that prices the line itself, or it falls back to
+  // its own catalogue price and misstates the order, which is what happened
+  // before this field existed. per ZEN-4048.
+  Money unit_price = 7;
+  // Tax for the whole line, not per unit. Unset when the order is untaxed.
+  Money tax = 8;
 }
 
 message Address {
@@ -443,8 +492,18 @@ message Shipment {
   string tracking_url = 5;
   string service_level = 6;
   google.protobuf.Timestamp shipped_ts = 7;
-  double shipping_cost = 8;
   repeated ShipmentLine lines = 9;
+
+  // Field 8 was `double shipping_cost`. Retired rather than retyped in place: a
+  // float is the wrong carrier for money, and reusing the number would let an
+  // old client's float land in a message field. Nothing populated it, because
+  // ConfirmShipments was never implemented, so no data is lost.
+  reserved 8;
+
+  // What it cost the fulfiller to ship this package. Unset when they do not
+  // report one; unset means unknown and must not be read as zero, which would
+  // silently inflate margin. per ZEN-4054.
+  Money shipping_cost = 10;
 }
 
 message ShipmentLine {

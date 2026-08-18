@@ -857,6 +857,21 @@
             "$ref": "#/definitions/shipping_apiAlert"
           },
           "description": "Alerts you currently have open on this fulfillment order. Returned so a\npoller can see what it has already raised without keeping its own record —\nthe same reason Zentail holds external_order_id."
+        },
+        "shippingPrice": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "What the buyer paid to have the order shipped, and the tax on it. Order\nlevel, not per line: the buyer pays it once however the order splits, so a\nfulfillment order covering part of an order carries the whole figure and it\nmust not be summed across siblings."
+        },
+        "shippingTax": {
+          "$ref": "#/definitions/shipping_apiMoney"
+        },
+        "discount": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "Discount applied to the order as a whole."
+        },
+        "totalPayment": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "What the buyer actually paid, in total, on the channel they bought from.\n\nDeliberately separate from the lines rather than derived from them. It is\nthe transaction, and it can legitimately disagree with the composed total:\nan order part-refunded, cancelled, or not yet paid. Measured across ~37k\nreal orders it matches the composition about 89% of the time, and the\nremainder is mostly lifecycle. per ZEN-4048.\n\nSo record payment from this, and compose the order from the lines. Do not\nreconcile one into the other by inventing an adjustment line."
         }
       },
       "description": "FulfillmentOrder is a lean view of the work: only the lines routed to one of\nthe caller's warehouses, with the quantities routed there."
@@ -886,6 +901,14 @@
         "cancelledQuantity": {
           "type": "integer",
           "format": "int32"
+        },
+        "unitPrice": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "What the buyer paid per unit, before tax. Not Zentail's cost.\n\nSend this on to a store that prices the line itself, or it falls back to\nits own catalogue price and misstates the order, which is what happened\nbefore this field existed. per ZEN-4048."
+        },
+        "tax": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "Tax for the whole line, not per unit. Unset when the order is untaxed."
         }
       }
     },
@@ -943,6 +966,20 @@
           "description": "Empty when the page is the last one."
         }
       }
+    },
+    "shipping_apiMoney": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "description": "Decimal string, e.g. \"13.00\". Negative for a credit."
+        },
+        "currencyCode": {
+          "type": "string",
+          "description": "ISO 4217, e.g. \"USD\"."
+        }
+      },
+      "description": "Money is an amount and the currency it is in.\n\nThe amount is a decimal string, not a float or units+nanos. Money in this\ncontract crosses into Shopify's MoneyBagInput, which is itself a decimal\nstring, so a string maps across untouched — no scaling and no rounding at the\nedge, which is where money bugs come from. Follows the Money already in\napi-proto's listing contract rather than google.type.Money, for that reason.\n\ncurrency_code travels with every amount rather than sitting once on the\norder. Multi-currency is real (etp has\npurchase_orders.non_standard_currencies), and a silently wrong currency is\nworse than a wrong amount: the number still looks plausible."
     },
     "shipping_apiRaiseAlertsRequest": {
       "type": "object",
@@ -1084,15 +1121,15 @@
           "type": "string",
           "format": "date-time"
         },
-        "shippingCost": {
-          "type": "number",
-          "format": "double"
-        },
         "lines": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/shipping_apiShipmentLine"
           }
+        },
+        "shippingCost": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "What it cost the fulfiller to ship this package. Unset when they do not\nreport one; unset means unknown and must not be read as zero, which would\nsilently inflate margin. per ZEN-4054."
         }
       }
     },
