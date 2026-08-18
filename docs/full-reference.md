@@ -31,6 +31,7 @@
     - [ListNeedToCancelResponse](#shipping_api-ListNeedToCancelResponse)
     - [ListNeedToShipRequest](#shipping_api-ListNeedToShipRequest)
     - [ListNeedToShipResponse](#shipping_api-ListNeedToShipResponse)
+    - [Money](#shipping_api-Money)
     - [RaiseAlertsRequest](#shipping_api-RaiseAlertsRequest)
     - [RaiseAlertsResponse](#shipping_api-RaiseAlertsResponse)
     - [RejectFulfillmentOrdersRequest](#shipping_api-RejectFulfillmentOrdersRequest)
@@ -412,6 +413,14 @@ the caller&#39;s warehouses, with the quantities routed there.
 | gift_message | [string](#string) |  |  |
 | lines | [FulfillmentOrderLine](#shipping_api-FulfillmentOrderLine) | repeated | Authoritative on every read. Quantities change when Zentail re-routes work in or out of this warehouse, so never cache them across polls. |
 | open_alerts | [Alert](#shipping_api-Alert) | repeated | Alerts you currently have open on this fulfillment order. Returned so a poller can see what it has already raised without keeping its own record — the same reason Zentail holds external_order_id. |
+| shipping_price | [Money](#shipping_api-Money) |  | What the buyer paid to have the order shipped, and the tax on it. Order level, not per line: the buyer pays it once however the order splits, so a fulfillment order covering part of an order carries the whole figure and it must not be summed across siblings. |
+| shipping_tax | [Money](#shipping_api-Money) |  |  |
+| discount | [Money](#shipping_api-Money) |  | Discount applied to the order as a whole. |
+| total_payment | [Money](#shipping_api-Money) |  | What the buyer actually paid, in total, on the channel they bought from.
+
+Deliberately separate from the lines rather than derived from them. It is the transaction, and it can legitimately disagree with the composed total: an order part-refunded, cancelled, or not yet paid. Measured across ~37k real orders it matches the composition about 89% of the time, and the remainder is mostly lifecycle. per ZEN-4048.
+
+So record payment from this, and compose the order from the lines. Do not reconcile one into the other by inventing an adjustment line. |
 
 
 
@@ -432,6 +441,10 @@ the caller&#39;s warehouses, with the quantities routed there.
 | quantity | [int32](#int32) |  | Routed to your warehouse, not the customer order&#39;s total. |
 | shipped_quantity | [int32](#int32) |  |  |
 | cancelled_quantity | [int32](#int32) |  |  |
+| unit_price | [Money](#shipping_api-Money) |  | What the buyer paid per unit, before tax. Not Zentail&#39;s cost.
+
+Send this on to a store that prices the line itself, or it falls back to its own catalogue price and misstates the order, which is what happened before this field existed. per ZEN-4048. |
+| tax | [Money](#shipping_api-Money) |  | Tax for the whole line, not per unit. Unset when the order is untaxed. |
 
 
 
@@ -538,6 +551,33 @@ because it is drained by confirming rather than by advancing a clock.
 | ----- | ---- | ----- | ----------- |
 | orders | [FulfillmentOrder](#shipping_api-FulfillmentOrder) | repeated |  |
 | next_cursor | [string](#string) |  | Empty when the page is the last one. |
+
+
+
+
+
+
+<a name="shipping_api-Money"></a>
+
+### Money
+Money is an amount and the currency it is in.
+
+The amount is a decimal string, not a float or units&#43;nanos. Money in this
+contract crosses into Shopify&#39;s MoneyBagInput, which is itself a decimal
+string, so a string maps across untouched — no scaling and no rounding at the
+edge, which is where money bugs come from. Follows the Money already in
+api-proto&#39;s listing contract rather than google.type.Money, for that reason.
+
+currency_code travels with every amount rather than sitting once on the
+order. Multi-currency is real (etp has
+purchase_orders.non_standard_currencies), and a silently wrong currency is
+worse than a wrong amount: the number still looks plausible.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| amount | [string](#string) |  | Decimal string, e.g. &#34;13.00&#34;. Negative for a credit. |
+| currency_code | [string](#string) |  | ISO 4217, e.g. &#34;USD&#34;. |
 
 
 
@@ -684,8 +724,8 @@ because it is drained by confirming rather than by advancing a clock.
 | tracking_url | [string](#string) |  |  |
 | service_level | [string](#string) |  |  |
 | shipped_ts | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-| shipping_cost | [double](#double) |  |  |
 | lines | [ShipmentLine](#shipping_api-ShipmentLine) | repeated |  |
+| shipping_cost | [Money](#shipping_api-Money) |  | What it cost the fulfiller to ship this package. Unset when they do not report one; unset means unknown and must not be read as zero, which would silently inflate margin. per ZEN-4054. |
 
 
 
