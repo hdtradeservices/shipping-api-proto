@@ -726,6 +726,7 @@ worse than a wrong amount: the number still looks plausible.
 | shipped_ts | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | lines | [ShipmentLine](#shipping_api-ShipmentLine) | repeated |  |
 | shipping_cost | [Money](#shipping_api-Money) |  | What it cost the fulfiller to ship this package. Unset when they do not report one; unset means unknown and must not be read as zero, which would silently inflate margin. per ZEN-4054. |
+| handling_cost | [Money](#shipping_api-Money) |  | A pick, pack or handling fee the fulfiller charges for this package, kept separate from postage rather than folded into it. Folding them loses the distinction permanently: postage is the carrier&#39;s price and varies by destination and weight, while a handling fee is the fulfiller&#39;s own and is usually flat, so a margin question about one cannot be answered from their sum. Unset means unknown, on the same terms as shipping_cost. per ZEN-4054. |
 
 
 
