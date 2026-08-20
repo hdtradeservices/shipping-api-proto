@@ -1130,6 +1130,10 @@
         "shippingCost": {
           "$ref": "#/definitions/shipping_apiMoney",
           "description": "What it cost the fulfiller to ship this package. Unset when they do not\nreport one; unset means unknown and must not be read as zero, which would\nsilently inflate margin. per ZEN-4054."
+        },
+        "handlingCost": {
+          "$ref": "#/definitions/shipping_apiMoney",
+          "description": "A pick, pack or handling fee the fulfiller charges for this package, kept\nseparate from postage rather than folded into it. Folding them loses the\ndistinction permanently: postage is the carrier's price and varies by\ndestination and weight, while a handling fee is the fulfiller's own and is\nusually flat, so a margin question about one cannot be answered from their\nsum. Unset means unknown, on the same terms as shipping_cost. per ZEN-4054."
         }
       }
     },
