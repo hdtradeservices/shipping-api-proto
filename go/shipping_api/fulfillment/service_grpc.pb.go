@@ -38,11 +38,19 @@ type FulfillmentIntegrationServiceClient interface {
 	// created it, there is nothing on your side to undo and the units simply
 	// leave ListNeedToShip.
 	//
-	// A partial cancellation puts the same fulfillment order in **both** queues:
-	// cancel the quantities named here, ship what ListNeedToShip still shows.
+	// Every entry is a total withdrawal: each line cancels at its full routed
+	// quantity, and nothing is left on this fulfillment order for
+	// ListNeedToShip to show. A merchant's partial reduction is not served
+	// here yet — it stays pending until per-line cancellation ships
+	// (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.
 	ListNeedToCancel(ctx context.Context, in *ListNeedToCancelRequest, opts ...grpc.CallOption) (*ListNeedToCancelResponse, error)
 	// GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or
 	// is not in. For troubleshooting and for reconciling after a crash.
+	//
+	// Pass exactly one of fulfillment_order_id or external_order_id. This is a
+	// point lookup, not a queue: an order it returns may still owe a shipment,
+	// and only ListNeedToShip says so. Polling it in place of the queues tells
+	// you what exists, never what Zentail wants done.
 	GetFulfillmentOrder(ctx context.Context, in *GetFulfillmentOrderRequest, opts ...grpc.CallOption) (*FulfillmentOrder, error)
 	// AcknowledgeFulfillmentOrders records the identifier you gave the work on
 	// your own side. It does **not** drain ListNeedToShip — you still owe the
@@ -223,11 +231,19 @@ type FulfillmentIntegrationServiceServer interface {
 	// created it, there is nothing on your side to undo and the units simply
 	// leave ListNeedToShip.
 	//
-	// A partial cancellation puts the same fulfillment order in **both** queues:
-	// cancel the quantities named here, ship what ListNeedToShip still shows.
+	// Every entry is a total withdrawal: each line cancels at its full routed
+	// quantity, and nothing is left on this fulfillment order for
+	// ListNeedToShip to show. A merchant's partial reduction is not served
+	// here yet — it stays pending until per-line cancellation ships
+	// (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.
 	ListNeedToCancel(context.Context, *ListNeedToCancelRequest) (*ListNeedToCancelResponse, error)
 	// GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or
 	// is not in. For troubleshooting and for reconciling after a crash.
+	//
+	// Pass exactly one of fulfillment_order_id or external_order_id. This is a
+	// point lookup, not a queue: an order it returns may still owe a shipment,
+	// and only ListNeedToShip says so. Polling it in place of the queues tells
+	// you what exists, never what Zentail wants done.
 	GetFulfillmentOrder(context.Context, *GetFulfillmentOrderRequest) (*FulfillmentOrder, error)
 	// AcknowledgeFulfillmentOrders records the identifier you gave the work on
 	// your own side. It does **not** drain ListNeedToShip — you still owe the
@@ -571,6 +587,13 @@ type WarehouseServiceClient interface {
 	// WarehouseStatus returns the integration's own diagnostic checks for one
 	// warehouse — the things only it can see, such as expiring credentials, a
 	// carrier account problem, or a location it can no longer reach.
+	//
+	// Zentail calls this while serving IntegrationStatus, so answer from state
+	// you already hold and return quickly. Report a problem as a failing Check
+	// rather than as a gRPC error: an error is indistinguishable from the
+	// integration being unreachable, and loses whatever the check would have
+	// said. Returning no checks means "nothing to report", which reads as
+	// healthy.
 	WarehouseStatus(ctx context.Context, in *WarehouseStatusRequest, opts ...grpc.CallOption) (*WarehouseStatusResponse, error)
 }
 
@@ -598,6 +621,13 @@ type WarehouseServiceServer interface {
 	// WarehouseStatus returns the integration's own diagnostic checks for one
 	// warehouse — the things only it can see, such as expiring credentials, a
 	// carrier account problem, or a location it can no longer reach.
+	//
+	// Zentail calls this while serving IntegrationStatus, so answer from state
+	// you already hold and return quickly. Report a problem as a failing Check
+	// rather than as a gRPC error: an error is indistinguishable from the
+	// integration being unreachable, and loses whatever the check would have
+	// said. Returning no checks means "nothing to report", which reads as
+	// healthy.
 	WarehouseStatus(context.Context, *WarehouseStatusRequest) (*WarehouseStatusResponse, error)
 }
 
