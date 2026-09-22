@@ -26,6 +26,8 @@ const (
 type CancellationReason int32
 
 const (
+	// Zentail always sets a reason. Read this as one it could not classify, not
+	// as an absent cancellation.
 	CancellationReason_CANCELLATION_REASON_UNSPECIFIED CancellationReason = 0
 	// Re-routed to a different warehouse.
 	CancellationReason_CANCELLATION_REASON_REROUTED CancellationReason = 1
@@ -88,14 +90,20 @@ func (CancellationReason) EnumDescriptor() ([]byte, []int) {
 type FulfillmentOrderStatus int32
 
 const (
+	// Not a state Zentail sends. Read it as a status you cannot interpret.
 	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_UNSPECIFIED FulfillmentOrderStatus = 0
 	// Routed to you, not yet acknowledged.
 	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_NEW FulfillmentOrderStatus = 1
 	// Acknowledged and awaiting shipment.
-	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_ACCEPTED            FulfillmentOrderStatus = 2
-	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_PARTIALLY_SHIPPED   FulfillmentOrderStatus = 3
-	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_SHIPPED             FulfillmentOrderStatus = 4
-	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_CANCELLED           FulfillmentOrderStatus = 5
+	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_ACCEPTED FulfillmentOrderStatus = 2
+	// Some units shipped and some are still owed; the remainder stays in
+	// ListNeedToShip.
+	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_PARTIALLY_SHIPPED FulfillmentOrderStatus = 3
+	// Every routed unit shipped. Nothing further is owed.
+	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_SHIPPED FulfillmentOrderStatus = 4
+	// Zentail pulled the whole thing back.
+	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_CANCELLED FulfillmentOrderStatus = 5
+	// Part was pulled back. Ship whatever ListNeedToShip still shows.
 	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_PARTIALLY_CANCELLED FulfillmentOrderStatus = 6
 	// You declined it. Zentail reroutes or surfaces it.
 	FulfillmentOrderStatus_FULFILLMENT_ORDER_STATUS_REJECTED FulfillmentOrderStatus = 7
@@ -152,15 +160,28 @@ func (FulfillmentOrderStatus) EnumDescriptor() ([]byte, []int) {
 	return file_shipping_api_fulfillment_service_proto_rawDescGZIP(), []int{1}
 }
 
+// RejectionReason is shown to the Zentail user deciding what to do next, so it
+// is required on every rejection. Pick the one that describes your side of the
+// problem; OTHER plus Rejection.detail is better than a near-miss.
 type RejectionReason int32
 
 const (
-	RejectionReason_REJECTION_REASON_UNSPECIFIED           RejectionReason = 0
-	RejectionReason_REJECTION_REASON_OUT_OF_STOCK          RejectionReason = 1
-	RejectionReason_REJECTION_REASON_DAMAGED               RejectionReason = 2
+	// Refused. Send a real reason, or OTHER.
+	RejectionReason_REJECTION_REASON_UNSPECIFIED RejectionReason = 0
+	// You hold the SKU but not enough of it to ship this work.
+	RejectionReason_REJECTION_REASON_OUT_OF_STOCK RejectionReason = 1
+	// The units are there but not shippable — damaged, expired, or failed a
+	// quality check.
+	RejectionReason_REJECTION_REASON_DAMAGED RejectionReason = 2
+	// The address will not deliver: your carrier refuses it, or it is incomplete.
+	// The likeliest reason a fulfillment order arrives with no ship_to at all.
 	RejectionReason_REJECTION_REASON_UNDELIVERABLE_ADDRESS RejectionReason = 3
-	RejectionReason_REJECTION_REASON_SKU_NOT_FOUND         RejectionReason = 4
-	RejectionReason_REJECTION_REASON_OTHER                 RejectionReason = 5
+	// The SKU is not one you stock at all. Distinct from OUT_OF_STOCK: that one
+	// clears when stock arrives, this one needs someone to fix the catalogue or
+	// the routing.
+	RejectionReason_REJECTION_REASON_SKU_NOT_FOUND RejectionReason = 4
+	// Anything else. Put the specifics in Rejection.detail — a user reads both.
+	RejectionReason_REJECTION_REASON_OTHER RejectionReason = 5
 )
 
 // Enum value maps for RejectionReason.
@@ -215,6 +236,7 @@ func (RejectionReason) EnumDescriptor() ([]byte, []int) {
 type AlertType int32
 
 const (
+	// Refused. Every alert names a type.
 	AlertType_ALERT_TYPE_UNSPECIFIED AlertType = 0
 	// Something is blocking fulfilment but you have not given up on it. If you
 	// have, reject instead.
@@ -222,7 +244,9 @@ const (
 	// Will miss, or has missed, the ship-by deadline.
 	AlertType_ALERT_TYPE_LATE_SHIPMENT AlertType = 2
 	// Shipped but the package is lost in transit.
-	AlertType_ALERT_TYPE_LOST  AlertType = 3
+	AlertType_ALERT_TYPE_LOST AlertType = 3
+	// Anything else worth telling a user about. Put the specifics in `message` —
+	// it is the only thing that reaches a person.
 	AlertType_ALERT_TYPE_OTHER AlertType = 4
 )
 
@@ -274,6 +298,8 @@ func (AlertType) EnumDescriptor() ([]byte, []int) {
 type CheckSource int32
 
 const (
+	// Not set. Zentail fills this in on every check it returns, so this value
+	// only appears on a check an integration sent and Zentail has not folded in.
 	CheckSource_CHECK_SOURCE_UNSPECIFIED CheckSource = 0
 	// Zentail observed this from the outside.
 	CheckSource_CHECK_SOURCE_ZENTAIL CheckSource = 1
@@ -325,10 +351,16 @@ func (CheckSource) EnumDescriptor() ([]byte, []int) {
 type CheckState int32
 
 const (
+	// Zentail never sends this. Treat it as a check you cannot interpret rather
+	// than as a pass.
 	CheckState_CHECK_STATE_UNSPECIFIED CheckState = 0
-	CheckState_CHECK_STATE_PASS        CheckState = 1
-	CheckState_CHECK_STATE_WARN        CheckState = 2
-	CheckState_CHECK_STATE_FAIL        CheckState = 3
+	// Healthy, nothing to do.
+	CheckState_CHECK_STATE_PASS CheckState = 1
+	// Working, but heading somewhere bad — a queue draining slower than it fills,
+	// a credential close to expiring. Worth looking at before it becomes a FAIL.
+	CheckState_CHECK_STATE_WARN CheckState = 2
+	// Broken now. Orders this check covers are not moving until it clears.
+	CheckState_CHECK_STATE_FAIL CheckState = 3
 )
 
 // Enum value maps for CheckState.
@@ -428,6 +460,10 @@ type WarehouseStatusResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Everything the integration knows about this warehouse's health, one entry
+	// per condition. Leave `source` and `warehouse_unique_id` unset; Zentail
+	// overwrites both as it folds these into IntegrationStatus. An empty list
+	// means nothing to report, which Zentail renders as healthy.
 	Checks []*Check `protobuf:"bytes,1,rep,name=checks,proto3" json:"checks,omitempty"`
 }
 
@@ -534,6 +570,9 @@ type ListNeedToShipResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The work you owe a shipment on, one fulfillment order per entry. Every read
+	// is authoritative rather than incremental: quantities on `lines` are what is
+	// routed to you now, and a re-route can lower them between polls.
 	Orders []*FulfillmentOrder `protobuf:"bytes,1,rep,name=orders,proto3" json:"orders,omitempty"`
 	// Empty when the page is the last one.
 	NextCursor string `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
@@ -590,8 +629,10 @@ type ListNeedToCancelRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Cursor   string `protobuf:"bytes,1,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	PageSize int32  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// Leave empty for the first page; pass next_cursor thereafter.
+	Cursor string `protobuf:"bytes,1,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// Server-capped. Omit for the default.
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 }
 
 func (x *ListNeedToCancelRequest) Reset() {
@@ -645,8 +686,13 @@ type ListNeedToCancelResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// What Zentail wants pulled back, one fulfillment order per entry. Only work
+	// you acknowledged appears here. Each entry is re-offered on every poll until
+	// you confirm it, so an entry you have already handled means the
+	// confirmation did not land.
 	Cancellations []*CancellationRequest `protobuf:"bytes,1,rep,name=cancellations,proto3" json:"cancellations,omitempty"`
-	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	// Empty when the page is the last one.
+	NextCursor string `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
 }
 
 func (x *ListNeedToCancelResponse) Reset() {
@@ -701,17 +747,26 @@ type CancellationRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The work being pulled back, the same id ListNeedToShip gave you. This is
+	// the only identifier ConfirmCancellations accepts.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
 	// Your identifier, from the acknowledgement — the handle you need to find it
 	// on your own side.
-	ExternalOrderId   string `protobuf:"bytes,2,opt,name=external_order_id,json=externalOrderId,proto3" json:"external_order_id,omitempty"`
-	OrderNumber       string `protobuf:"bytes,3,opt,name=order_number,json=orderNumber,proto3" json:"order_number,omitempty"`
+	ExternalOrderId string `protobuf:"bytes,2,opt,name=external_order_id,json=externalOrderId,proto3" json:"external_order_id,omitempty"`
+	// The customer order this came from, for display and correlation. Not an
+	// identifier: one customer order can produce two fulfillment orders for you.
+	OrderNumber string `protobuf:"bytes,3,opt,name=order_number,json=orderNumber,proto3" json:"order_number,omitempty"`
+	// The warehouse the work was routed to, in your own namespace. Carried so a
+	// multi-warehouse integration can route the pull-back without re-reading the
+	// fulfillment order.
 	WarehouseUniqueId string `protobuf:"bytes,4,opt,name=warehouse_unique_id,json=warehouseUniqueId,proto3" json:"warehouse_unique_id,omitempty"`
 	// Why, so it can be shown to a warehouse operator.
 	Reason CancellationReason `protobuf:"varint,5,opt,name=reason,proto3,enum=shipping_api.CancellationReason" json:"reason,omitempty"`
 	// The quantities to pull back. A partial cancellation lists only some lines,
 	// or a lower quantity than the fulfillment order carries — ship the rest.
-	Lines       []*CancellationLine    `protobuf:"bytes,6,rep,name=lines,proto3" json:"lines,omitempty"`
+	Lines []*CancellationLine `protobuf:"bytes,6,rep,name=lines,proto3" json:"lines,omitempty"`
+	// When Zentail asked for the work back. For ageing a queue you have not
+	// drained — it is not a deadline, and not an idempotency key.
 	RequestedTs *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=requested_ts,json=requestedTs,proto3" json:"requested_ts,omitempty"`
 }
 
@@ -806,7 +861,6 @@ type GetFulfillmentOrderRequest struct {
 	// integration, so it does not uniquely identify work.
 	//
 	// Types that are assignable to Identifier:
-	//
 	//	*GetFulfillmentOrderRequest_FulfillmentOrderId
 	//	*GetFulfillmentOrderRequest_ExternalOrderId
 	Identifier isGetFulfillmentOrderRequest_Identifier `protobuf_oneof:"identifier"`
@@ -870,10 +924,14 @@ type isGetFulfillmentOrderRequest_Identifier interface {
 }
 
 type GetFulfillmentOrderRequest_FulfillmentOrderId struct {
+	// Zentail's id, as it appears on any fulfillment order you have been given.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3,oneof"`
 }
 
 type GetFulfillmentOrderRequest_ExternalOrderId struct {
+	// The id you recorded with AcknowledgeFulfillmentOrders. Unique within your
+	// integration, so it resolves to exactly one fulfillment order — which is
+	// what makes it usable for reconciling after a crash.
 	ExternalOrderId string `protobuf:"bytes,2,opt,name=external_order_id,json=externalOrderId,proto3,oneof"`
 }
 
@@ -964,20 +1022,45 @@ type FulfillmentOrder struct {
 	// not unique to you, and is not accepted as an identifier on any write.
 	OrderNumber string `protobuf:"bytes,2,opt,name=order_number,json=orderNumber,proto3" json:"order_number,omitempty"`
 	// Set once you have acknowledged it.
-	ExternalOrderId string                 `protobuf:"bytes,3,opt,name=external_order_id,json=externalOrderId,proto3" json:"external_order_id,omitempty"`
-	Status          FulfillmentOrderStatus `protobuf:"varint,4,opt,name=status,proto3,enum=shipping_api.FulfillmentOrderStatus" json:"status,omitempty"`
+	ExternalOrderId string `protobuf:"bytes,3,opt,name=external_order_id,json=externalOrderId,proto3" json:"external_order_id,omitempty"`
+	// Where the work has got to. Informational only, and possibly a poll behind
+	// the queues — see the enum for why nothing should branch on it.
+	Status FulfillmentOrderStatus `protobuf:"varint,4,opt,name=status,proto3,enum=shipping_api.FulfillmentOrderStatus" json:"status,omitempty"`
 	// The warehouse these lines are routed to, in your own namespace.
-	WarehouseUniqueId string                 `protobuf:"bytes,5,opt,name=warehouse_unique_id,json=warehouseUniqueId,proto3" json:"warehouse_unique_id,omitempty"`
-	OrderedTs         *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=ordered_ts,json=orderedTs,proto3" json:"ordered_ts,omitempty"`
+	WarehouseUniqueId string `protobuf:"bytes,5,opt,name=warehouse_unique_id,json=warehouseUniqueId,proto3" json:"warehouse_unique_id,omitempty"`
+	// When the buyer placed the customer order — not when the work reached you.
+	// Age your own queue on assigned_ts instead; an order can be routed to a
+	// warehouse days after it was placed.
+	OrderedTs *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=ordered_ts,json=orderedTs,proto3" json:"ordered_ts,omitempty"`
 	// When this work was routed to your warehouse.
-	AssignedTs    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=assigned_ts,json=assignedTs,proto3" json:"assigned_ts,omitempty"`
+	AssignedTs *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=assigned_ts,json=assignedTs,proto3" json:"assigned_ts,omitempty"`
+	// When Zentail last changed anything here, a re-route included. It tells you
+	// a cached copy is stale; it does not say what changed, so re-read `lines`
+	// rather than diffing on it.
 	LastUpdatedTs *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=last_updated_ts,json=lastUpdatedTs,proto3" json:"last_updated_ts,omitempty"`
-	// Deadline for handing the package to the carrier, when the channel sets one.
-	ShipByTs              *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=ship_by_ts,json=shipByTs,proto3" json:"ship_by_ts,omitempty"`
-	ShipTo                *Address               `protobuf:"bytes,10,opt,name=ship_to,json=shipTo,proto3" json:"ship_to,omitempty"`
-	RequestedServiceLevel string                 `protobuf:"bytes,11,opt,name=requested_service_level,json=requestedServiceLevel,proto3" json:"requested_service_level,omitempty"`
-	BuyerName             string                 `protobuf:"bytes,12,opt,name=buyer_name,json=buyerName,proto3" json:"buyer_name,omitempty"`
-	GiftMessage           string                 `protobuf:"bytes,13,opt,name=gift_message,json=giftMessage,proto3" json:"gift_message,omitempty"`
+	// Deadline for handing the package to the carrier. Not populated: Zentail has
+	// no ship-by column to read, and will not approximate one from another
+	// timestamp because a fabricated deadline is worse than none to a fulfiller
+	// that prioritises on it. Always unset today — measured against sales-orders
+	// on 2026-09-21. Prioritise on assigned_ts.
+	ShipByTs *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=ship_by_ts,json=shipByTs,proto3" json:"ship_by_ts,omitempty"`
+	// Where the package goes. Unset when the order has no usable shipping address
+	// — none was captured, or it was redacted under the PII retention policy — and
+	// in that case there is nothing to ship to. Raise an alert or reject with
+	// UNDELIVERABLE_ADDRESS rather than guessing one.
+	ShipTo *Address `protobuf:"bytes,10,opt,name=ship_to,json=shipTo,proto3" json:"ship_to,omitempty"`
+	// The shipping speed the buyer bought, as Zentail's standardised service
+	// level for the order. Empty when the channel named none. Map it onto one of
+	// your own carrier services; it does not name a carrier.
+	RequestedServiceLevel string `protobuf:"bytes,11,opt,name=requested_service_level,json=requestedServiceLevel,proto3" json:"requested_service_level,omitempty"`
+	// The buyer, for packing slips and support. Not the addressee:
+	// ship_to.name is who the label goes to and legitimately differs on a gift or
+	// a business delivery. Address the package from ship_to.
+	BuyerName string `protobuf:"bytes,12,opt,name=buyer_name,json=buyerName,proto3" json:"buyer_name,omitempty"`
+	// Not populated. Zentail has no gift-message column to read one from, so this
+	// is always empty and is not evidence that the order carries no gift message.
+	// Measured against sales-orders on 2026-09-21.
+	GiftMessage string `protobuf:"bytes,13,opt,name=gift_message,json=giftMessage,proto3" json:"gift_message,omitempty"`
 	// Authoritative on every read. Quantities change when Zentail re-routes work
 	// in or out of this warehouse, so never cache them across polls.
 	Lines []*FulfillmentOrderLine `protobuf:"bytes,14,rep,name=lines,proto3" json:"lines,omitempty"`
@@ -990,7 +1073,9 @@ type FulfillmentOrder struct {
 	// fulfillment order covering part of an order carries the whole figure and it
 	// must not be summed across siblings.
 	ShippingPrice *Money `protobuf:"bytes,16,opt,name=shipping_price,json=shippingPrice,proto3" json:"shipping_price,omitempty"`
-	ShippingTax   *Money `protobuf:"bytes,17,opt,name=shipping_tax,json=shippingTax,proto3" json:"shipping_tax,omitempty"`
+	// Tax charged on that shipping price. Order level on the same terms, so it
+	// must not be summed across the fulfillment orders of one customer order.
+	ShippingTax *Money `protobuf:"bytes,17,opt,name=shipping_tax,json=shippingTax,proto3" json:"shipping_tax,omitempty"`
 	// Discount applied to the order as a whole.
 	Discount *Money `protobuf:"bytes,18,opt,name=discount,proto3" json:"discount,omitempty"`
 	// What the buyer actually paid, in total, on the channel they bought from.
@@ -1184,7 +1269,9 @@ type CancellationLine struct {
 	// Echoes the fulfillment order's line, so a partial cancel names exactly
 	// which line it reduces.
 	LineItemId string `protobuf:"bytes,1,opt,name=line_item_id,json=lineItemId,proto3" json:"line_item_id,omitempty"`
-	Sku        string `protobuf:"bytes,2,opt,name=sku,proto3" json:"sku,omitempty"`
+	// The SKU on that line, so a warehouse operator can read the instruction.
+	// line_item_id is what identifies the line — one SKU can appear on two.
+	Sku string `protobuf:"bytes,2,opt,name=sku,proto3" json:"sku,omitempty"`
 	// How many units to pull back — not the line's routed total.
 	Quantity int32 `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
 }
@@ -1249,11 +1336,20 @@ type FulfillmentOrderLine struct {
 
 	// Stable per line; echo it back on shipment, cancellation and rejection.
 	LineItemId string `protobuf:"bytes,1,opt,name=line_item_id,json=lineItemId,proto3" json:"line_item_id,omitempty"`
-	Sku        string `protobuf:"bytes,2,opt,name=sku,proto3" json:"sku,omitempty"`
-	Title      string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// Zentail's SKU for the unit to pick. Report work by line_item_id rather than
+	// by this: one SKU can appear on two lines of the same order.
+	Sku string `protobuf:"bytes,2,opt,name=sku,proto3" json:"sku,omitempty"`
+	// The product name, for packing slips and pick lists. Display only — it can
+	// change between polls and identifies nothing.
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	// Routed to your warehouse, not the customer order's total.
-	Quantity          int32 `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	ShippedQuantity   int32 `protobuf:"varint,5,opt,name=shipped_quantity,json=shippedQuantity,proto3" json:"shipped_quantity,omitempty"`
+	Quantity int32 `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	// Always zero, deliberately. `quantity` is already only what you still owe,
+	// so subtracting this would double-count what has shipped. Your own
+	// ConfirmShipments calls are the record of shipments, not this field.
+	// Measured against sales-orders on 2026-09-21.
+	ShippedQuantity int32 `protobuf:"varint,5,opt,name=shipped_quantity,json=shippedQuantity,proto3" json:"shipped_quantity,omitempty"`
+	// Always zero, on the same terms as shipped_quantity.
 	CancelledQuantity int32 `protobuf:"varint,6,opt,name=cancelled_quantity,json=cancelledQuantity,proto3" json:"cancelled_quantity,omitempty"`
 	// What the buyer paid per unit, before tax. Not Zentail's cost.
 	//
@@ -1353,21 +1449,48 @@ func (x *FulfillmentOrderLine) GetTax() *Money {
 	return nil
 }
 
+// Address is the buyer's shipping address exactly as the sales channel supplied
+// it. Zentail copies it through without normalising, validating or completing
+// any part of it, so treat every field as free text — in particular country and
+// region are **not** guaranteed to be ISO codes.
+//
+// Validate it against your own carrier's rules and reject with
+// UNDELIVERABLE_ADDRESS rather than shipping to a guess. An address that was
+// never captured, or that has been redacted under the PII retention policy, is
+// absent from the fulfillment order entirely rather than arriving half-filled.
 type Address struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name       string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Company    string `protobuf:"bytes,2,opt,name=company,proto3" json:"company,omitempty"`
-	Line_1     string `protobuf:"bytes,3,opt,name=line_1,json=line1,proto3" json:"line_1,omitempty"`
-	Line_2     string `protobuf:"bytes,4,opt,name=line_2,json=line2,proto3" json:"line_2,omitempty"`
-	City       string `protobuf:"bytes,5,opt,name=city,proto3" json:"city,omitempty"`
-	Region     string `protobuf:"bytes,6,opt,name=region,proto3" json:"region,omitempty"`
+	// Who the package is addressed to. Not always the buyer — see
+	// FulfillmentOrder.buyer_name.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Business name at the delivery address, when the channel captured one.
+	Company string `protobuf:"bytes,2,opt,name=company,proto3" json:"company,omitempty"`
+	// Street address. The line that is present whenever there is an address at
+	// all.
+	Line_1 string `protobuf:"bytes,3,opt,name=line_1,json=line1,proto3" json:"line_1,omitempty"`
+	// Apartment, suite, unit or similar. Commonly empty.
+	Line_2 string `protobuf:"bytes,4,opt,name=line_2,json=line2,proto3" json:"line_2,omitempty"`
+	// Town or city, as supplied. Free text, and empty when the channel sent none.
+	City string `protobuf:"bytes,5,opt,name=city,proto3" json:"city,omitempty"`
+	// State, province or county, as supplied. Sometimes a code and sometimes a
+	// full name, because it is whatever the channel sent — do not key on it.
+	Region string `protobuf:"bytes,6,opt,name=region,proto3" json:"region,omitempty"`
+	// ZIP or postal code, as supplied. Not validated, and not checked against the
+	// country.
 	PostalCode string `protobuf:"bytes,7,opt,name=postal_code,json=postalCode,proto3" json:"postal_code,omitempty"`
-	Country    string `protobuf:"bytes,8,opt,name=country,proto3" json:"country,omitempty"`
-	Phone      string `protobuf:"bytes,9,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email      string `protobuf:"bytes,10,opt,name=email,proto3" json:"email,omitempty"`
+	// Country, as supplied. Usually a two-letter ISO code but not guaranteed to
+	// be one, so anything parsing it needs a fallback.
+	Country string `protobuf:"bytes,8,opt,name=country,proto3" json:"country,omitempty"`
+	// Contact number for the carrier, when the channel captured one. Not
+	// normalised to E.164 and may carry extensions or punctuation.
+	Phone string `protobuf:"bytes,9,opt,name=phone,proto3" json:"phone,omitempty"`
+	// The buyer's email address, for carrier notifications about this delivery.
+	// It hangs off the address rather than the order because the two are PII
+	// under one retention policy: a redacted order carries neither.
+	Email string `protobuf:"bytes,10,opt,name=email,proto3" json:"email,omitempty"`
 }
 
 func (x *Address) Reset() {
@@ -1477,6 +1600,9 @@ type AcknowledgeFulfillmentOrdersRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per fulfillment order you have created on your own side.
+	// Required and server-capped: an empty list, or one over the cap, fails the
+	// whole request rather than answering per entry.
 	Acknowledgements []*Acknowledgement `protobuf:"bytes,1,rep,name=acknowledgements,proto3" json:"acknowledgements,omitempty"`
 }
 
@@ -1524,6 +1650,8 @@ type Acknowledgement struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The work you are claiming, as ListNeedToShip gave it. Acknowledging does
+	// not drain it from that queue — you still owe the shipment.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
 	// Your own identifier for the work. Unique per integration — Zentail rejects
 	// a duplicate rather than recording it twice, which is what makes a retry
@@ -1582,6 +1710,8 @@ type AcknowledgeFulfillmentOrdersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per acknowledgement sent. Match on fulfillment_order_id rather
+	// than on position, and read every entry: one failing does not fail the rest.
 	Results []*AcknowledgementResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -1629,9 +1759,16 @@ type AcknowledgementResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The acknowledgement this answers, echoed back.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Success            bool   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// True when Zentail holds your external_order_id against this fulfillment
+	// order — including when it already did, which reports success with
+	// already_acknowledged set. False is always a real failure.
+	Success bool `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success. This
+	// contract carries no error code, so the string is all there is: log it, and
+	// do not branch on its wording.
+	ErrorMessage string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// True when this external_order_id was already recorded — a replay, not a
 	// conflict. Treat as success.
 	AlreadyAcknowledged bool `protobuf:"varint,4,opt,name=already_acknowledged,json=alreadyAcknowledged,proto3" json:"already_acknowledged,omitempty"`
@@ -1702,6 +1839,8 @@ type ConfirmShipmentsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per package. Required and server-capped: an empty list, or one
+	// over the cap, fails the whole request rather than answering per entry.
 	Shipments []*Shipment `protobuf:"bytes,1,rep,name=shipments,proto3" json:"shipments,omitempty"`
 }
 
@@ -1749,15 +1888,38 @@ type Shipment struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Which fulfillment order this package is against. One package cannot span
+	// two fulfillment orders, so a consignment covering both halves of a split
+	// order is two Shipments.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
 	// Your identifier for this package. Idempotency key: a repeat is a no-op.
-	ExternalShipmentId string                 `protobuf:"bytes,2,opt,name=external_shipment_id,json=externalShipmentId,proto3" json:"external_shipment_id,omitempty"`
-	Carrier            string                 `protobuf:"bytes,3,opt,name=carrier,proto3" json:"carrier,omitempty"`
-	TrackingNumber     string                 `protobuf:"bytes,4,opt,name=tracking_number,json=trackingNumber,proto3" json:"tracking_number,omitempty"`
-	TrackingUrl        string                 `protobuf:"bytes,5,opt,name=tracking_url,json=trackingUrl,proto3" json:"tracking_url,omitempty"`
-	ServiceLevel       string                 `protobuf:"bytes,6,opt,name=service_level,json=serviceLevel,proto3" json:"service_level,omitempty"`
-	ShippedTs          *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=shipped_ts,json=shippedTs,proto3" json:"shipped_ts,omitempty"`
-	Lines              []*ShipmentLine        `protobuf:"bytes,9,rep,name=lines,proto3" json:"lines,omitempty"`
+	ExternalShipmentId string `protobuf:"bytes,2,opt,name=external_shipment_id,json=externalShipmentId,proto3" json:"external_shipment_id,omitempty"`
+	// Who is carrying it, as you name them — free text, not a Zentail enum. Shown
+	// to the buyer and to support alongside the tracking number.
+	Carrier string `protobuf:"bytes,3,opt,name=carrier,proto3" json:"carrier,omitempty"`
+	// Required. A package sent without one is refused rather than recorded,
+	// because Zentail drops an untracked package silently: accepting it would
+	// report success for a shipment that was never stored, leaving the units owed
+	// with nothing saying why.
+	TrackingNumber string `protobuf:"bytes,4,opt,name=tracking_number,json=trackingNumber,proto3" json:"tracking_number,omitempty"`
+	// Not currently stored. Zentail tracks by carrier and tracking number and has
+	// nowhere to put a per-package URL, so anything sent here is accepted and
+	// discarded. Measured against sales-orders on 2026-09-21.
+	TrackingUrl string `protobuf:"bytes,5,opt,name=tracking_url,json=trackingUrl,proto3" json:"tracking_url,omitempty"`
+	// Required, and not defaulted. The shipping speed you actually used, in your
+	// own vocabulary — Zentail will not substitute a value, because one guess for
+	// every fulfiller hides which of them reported nothing. Send a placeholder of
+	// your own if you have no real level to report.
+	ServiceLevel string `protobuf:"bytes,6,opt,name=service_level,json=serviceLevel,proto3" json:"service_level,omitempty"`
+	// When the package was handed to the carrier. Omit it and Zentail stamps the
+	// time the request arrived, which is the right behaviour for a confirmation
+	// sent immediately; send it when you are catching up on a backlog.
+	ShippedTs *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=shipped_ts,json=shippedTs,proto3" json:"shipped_ts,omitempty"`
+	// What is in the package. Omit to ship everything the fulfillment order still
+	// owes — the common case. Naming lines ships those quantities only; a
+	// line_item_id not on the order, a quantity below one, or quantities summing
+	// past what is owed fails this package and leaves the units owed.
+	Lines []*ShipmentLine `protobuf:"bytes,9,rep,name=lines,proto3" json:"lines,omitempty"`
 	// What it cost the fulfiller to ship this package. Unset when they do not
 	// report one; unset means unknown and must not be read as zero, which would
 	// silently inflate margin. per ZEN-4054.
@@ -1878,8 +2040,13 @@ type ShipmentLine struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Which line of the fulfillment order, echoed from FulfillmentOrderLine. A
+	// SKU is not accepted here: one SKU can appear on two lines.
 	LineItemId string `protobuf:"bytes,1,opt,name=line_item_id,json=lineItemId,proto3" json:"line_item_id,omitempty"`
-	Quantity   int32  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	// How many units of that line are in this package. At least one, and never
+	// more than the line still owes — across the whole request, so naming one
+	// line twice is summed before it is checked.
+	Quantity int32 `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
 }
 
 func (x *ShipmentLine) Reset() {
@@ -1933,6 +2100,9 @@ type ConfirmShipmentsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per shipment sent. Match on external_shipment_id rather than on
+	// position, and read every entry — one package failing does not fail the
+	// others, and the units it covered are still owed.
 	Results []*ShipmentResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -1980,10 +2150,18 @@ type ShipmentResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The fulfillment order this package was against, echoed back.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// Your own id for the package, echoed back. This is what to match a result
+	// on: one call may carry several packages for the same fulfillment order.
 	ExternalShipmentId string `protobuf:"bytes,2,opt,name=external_shipment_id,json=externalShipmentId,proto3" json:"external_shipment_id,omitempty"`
-	Success            bool   `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// True when the package is recorded, including when it already was — a replay
+	// reports success with already_recorded set. False is always a real failure,
+	// and the units it covered are still owed.
+	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success. No error
+	// code accompanies it, so log the string rather than branching on it.
+	ErrorMessage string `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// True when this shipment was already recorded. Treat as success.
 	AlreadyRecorded bool `protobuf:"varint,5,opt,name=already_recorded,json=alreadyRecorded,proto3" json:"already_recorded,omitempty"`
 }
@@ -2060,6 +2238,8 @@ type ConfirmCancellationsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per cancellation request you have carried out. Required and
+	// server-capped, like every batch on this contract.
 	Confirmations []*CancellationConfirmation `protobuf:"bytes,1,rep,name=confirmations,proto3" json:"confirmations,omitempty"`
 }
 
@@ -2107,9 +2287,12 @@ type CancellationConfirmation struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Which cancellation request you are answering, from ListNeedToCancel.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	// The quantities you actually pulled back. Omit to confirm everything
-	// ListNeedToCancel asked for.
+	// Not supported yet. Sending any line fails the entry rather than being
+	// widened to the whole request, because treating a partial confirmation as a
+	// full one would cancel units you did not. Omit it to confirm the whole
+	// request, which is the only shape ListNeedToCancel asks for today.
 	Lines []*ShipmentLine `protobuf:"bytes,2,rep,name=lines,proto3" json:"lines,omitempty"`
 	// Set when you could not cancel because the units are already on their way.
 	// Zentail keeps the customer order truthful rather than showing a
@@ -2176,6 +2359,8 @@ type ConfirmCancellationsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per confirmation sent, matched on fulfillment_order_id. An entry
+	// that failed is still in ListNeedToCancel on the next poll.
 	Results []*CancellationResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -2223,9 +2408,16 @@ type CancellationResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The confirmation this answers, echoed back.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Success            bool   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// True when the request is drained, which includes a replay (already_recorded
+	// set) and a report of already_shipped — you answered the question you were
+	// asked. False is a real failure, and the request will be re-offered.
+	Success bool `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success. Two
+	// failures are worth handling rather than retrying: no outstanding request
+	// for this order, and an order that has already shipped or been rejected.
+	ErrorMessage string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// True when this cancellation was already recorded. Treat as success.
 	AlreadyRecorded bool `protobuf:"varint,4,opt,name=already_recorded,json=alreadyRecorded,proto3" json:"already_recorded,omitempty"`
 }
@@ -2295,6 +2487,8 @@ type RejectFulfillmentOrdersRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per fulfillment order you are declining. Required and
+	// server-capped, like every batch on this contract.
 	Rejections []*Rejection `protobuf:"bytes,1,rep,name=rejections,proto3" json:"rejections,omitempty"`
 }
 
@@ -2342,12 +2536,17 @@ type Rejection struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FulfillmentOrderId string          `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Reason             RejectionReason `protobuf:"varint,2,opt,name=reason,proto3,enum=shipping_api.RejectionReason" json:"reason,omitempty"`
+	// The work you are handing back, from ListNeedToShip.
+	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// Why you cannot fulfil it. Required — an unset reason is refused rather than
+	// stored, since the reason is the whole content of the record and OTHER
+	// already covers anything outside the list.
+	Reason RejectionReason `protobuf:"varint,2,opt,name=reason,proto3,enum=shipping_api.RejectionReason" json:"reason,omitempty"`
 	// Free text shown to the user alongside the reason.
 	Detail string `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
-	// Omit to reject the whole fulfillment order. Naming lines rejects only
-	// those quantities; the rest stays in ListNeedToShip.
+	// Not supported yet. Sending any line fails the entry rather than declining
+	// the whole order, which would hand back units you can still ship, silently.
+	// Omit it to decline the whole fulfillment order.
 	Lines []*ShipmentLine `protobuf:"bytes,4,rep,name=lines,proto3" json:"lines,omitempty"`
 }
 
@@ -2416,6 +2615,8 @@ type RejectFulfillmentOrdersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per rejection sent, matched on fulfillment_order_id. Anything
+	// that failed is still in ListNeedToShip on the next poll.
 	Results []*RejectionResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -2463,9 +2664,16 @@ type RejectionResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The rejection this answers, echoed back.
 	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Success            bool   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// True when the work is out of your queue, which includes a repeat of a
+	// rejection already recorded. False is a real failure and the work is still
+	// yours to ship or decline.
+	Success bool `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success. The one
+	// worth handling rather than retrying is an order that has shipped,
+	// part-shipped or been cancelled, which can no longer be declined.
+	ErrorMessage string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 }
 
 func (x *RejectionResult) Reset() {
@@ -2526,6 +2734,9 @@ type RaiseAlertsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per condition to raise. Required and server-capped, like every
+	// batch on this contract. Safe to re-send the same alerts every poll: a
+	// second open alert of the same type on the same order is not created.
 	Alerts []*Alert `protobuf:"bytes,1,rep,name=alerts,proto3" json:"alerts,omitempty"`
 }
 
@@ -2573,8 +2784,14 @@ type Alert struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FulfillmentOrderId string    `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Type               AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
+	// The fulfillment order the problem is on. An alert is always about one piece
+	// of work; there is no integration-wide alert — IntegrationStatus is where
+	// that belongs.
+	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// What kind of problem it is. Required, and it is half the identity of the
+	// alert: Zentail refuses a second open alert of the same type on the same
+	// order, so the type is what makes a poller's re-raise a no-op.
+	Type AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
 	// Shown to the user. Say what is wrong and what would fix it.
 	Message string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	// Optional: scope the alert to one line.
@@ -2646,6 +2863,9 @@ type RaiseAlertsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per alert sent, keyed by fulfillment order and type. Read
+	// already_open before reacting to anything: on a steady-state poller most
+	// entries are re-raises of a condition that has not gone away.
 	Results []*AlertResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -2693,10 +2913,17 @@ type AlertResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FulfillmentOrderId string    `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Type               AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
-	Success            bool      `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string    `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// The fulfillment order the alert was raised against, echoed back.
+	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// The alert type, echoed back. Match a result on the pair of this and
+	// fulfillment_order_id — together they identify the alert.
+	Type AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
+	// True when an open alert of this type exists on the order, whether this call
+	// created it or found it already there. False is a real failure.
+	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success. A missing
+	// `message` and a type an integration may not raise both land here.
+	ErrorMessage string `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// True when an open alert of this type already existed, so nothing was
 	// created. Treat as success — this is the expected steady state for a poller
 	// re-raising a condition that has not gone away.
@@ -2775,6 +3002,9 @@ type ResolveAlertsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One entry per alert to clear. Required and server-capped. Only alerts this
+	// integration raised are in scope — naming one raised by Zentail or by
+	// another integration clears nothing.
 	Resolutions []*AlertResolution `protobuf:"bytes,1,rep,name=resolutions,proto3" json:"resolutions,omitempty"`
 }
 
@@ -2822,8 +3052,12 @@ type AlertResolution struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FulfillmentOrderId string    `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Type               AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
+	// The fulfillment order carrying the alert.
+	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// Which alert to clear. Only an alert this integration raised is in scope, so
+	// an alert of the same type raised by Zentail or by another integration
+	// survives.
+	Type AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
 	// Why it is resolved. Stored alongside the alert and shown to the user.
 	Resolution string `protobuf:"bytes,3,opt,name=resolution,proto3" json:"resolution,omitempty"`
 }
@@ -2886,6 +3120,9 @@ type ResolveAlertsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// One result per resolution sent, keyed by fulfillment order and type. Read
+	// already_resolved before reacting: nothing open to clear is the normal
+	// answer to a retry, and to a user having cleared it first.
 	Results []*AlertResolveResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
@@ -2937,10 +3174,16 @@ type AlertResolveResult struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FulfillmentOrderId string    `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
-	Type               AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
-	Success            bool      `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage       string    `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	// The fulfillment order the alert was on, echoed back.
+	FulfillmentOrderId string `protobuf:"bytes,1,opt,name=fulfillment_order_id,json=fulfillmentOrderId,proto3" json:"fulfillment_order_id,omitempty"`
+	// The alert type, echoed back. Match a result on this and
+	// fulfillment_order_id together.
+	Type AlertType `protobuf:"varint,2,opt,name=type,proto3,enum=shipping_api.AlertType" json:"type,omitempty"`
+	// True when no alert of this type is open any more, whether this call closed
+	// it or found nothing to close. False is a real failure.
+	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// Why it failed, in prose, for logs and support. Empty on success.
+	ErrorMessage string `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	// True when no open alert of this type remained, so nothing changed. Treat as
 	// success: it is what a retry after a timeout sees, and what a poller sees
 	// when a user resolved the alert by hand first.
@@ -3057,6 +3300,9 @@ type IntegrationStatusResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Zentail's own observations and the integration's last reported checks, in
+	// one list. Read `source` to tell them apart; render them together, because
+	// an operator asking "is this working" does not care who noticed.
 	Checks []*Check `protobuf:"bytes,1,rep,name=checks,proto3" json:"checks,omitempty"`
 }
 
@@ -3106,7 +3352,10 @@ type Check struct {
 
 	// Stable identifier, not prose — an operator or an alert matches on this, so
 	// it must not change when the wording does. Lower_snake_case by convention.
-	Name  string     `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// How bad this is. FAIL means the thing the check covers is broken now; WARN
+	// means it still works but is degrading, which is where a queue that has
+	// stopped being drained shows up first.
 	State CheckState `protobuf:"varint,2,opt,name=state,proto3,enum=shipping_api.CheckState" json:"state,omitempty"`
 	// Prose for a human. Say what is wrong and what would fix it.
 	Message string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
