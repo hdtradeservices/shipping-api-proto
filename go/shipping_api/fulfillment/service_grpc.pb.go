@@ -38,8 +38,11 @@ type FulfillmentIntegrationServiceClient interface {
 	// created it, there is nothing on your side to undo and the units simply
 	// leave ListNeedToShip.
 	//
-	// A partial cancellation puts the same fulfillment order in **both** queues:
-	// cancel the quantities named here, ship what ListNeedToShip still shows.
+	// Every entry is a total withdrawal: each line cancels at its full routed
+	// quantity, and nothing is left on this fulfillment order for
+	// ListNeedToShip to show. A merchant's partial reduction is not served
+	// here yet — it stays pending until per-line cancellation ships
+	// (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.
 	ListNeedToCancel(ctx context.Context, in *ListNeedToCancelRequest, opts ...grpc.CallOption) (*ListNeedToCancelResponse, error)
 	// GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or
 	// is not in. For troubleshooting and for reconciling after a crash.
@@ -228,8 +231,11 @@ type FulfillmentIntegrationServiceServer interface {
 	// created it, there is nothing on your side to undo and the units simply
 	// leave ListNeedToShip.
 	//
-	// A partial cancellation puts the same fulfillment order in **both** queues:
-	// cancel the quantities named here, ship what ListNeedToShip still shows.
+	// Every entry is a total withdrawal: each line cancels at its full routed
+	// quantity, and nothing is left on this fulfillment order for
+	// ListNeedToShip to show. A merchant's partial reduction is not served
+	// here yet — it stays pending until per-line cancellation ships
+	// (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.
 	ListNeedToCancel(context.Context, *ListNeedToCancelRequest) (*ListNeedToCancelResponse, error)
 	// GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or
 	// is not in. For troubleshooting and for reconciling after a crash.

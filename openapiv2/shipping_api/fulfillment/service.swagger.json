@@ -234,7 +234,7 @@
     "/v2/shipping/need_to_cancel": {
       "get": {
         "summary": "ListNeedToCancel returns fulfillment orders you have acknowledged that\nZentail now wants pulled back — re-routed to another warehouse, or\ncancelled by the buyer or the channel.",
-        "description": "Only acknowledged work appears here. If you never told Zentail you had\ncreated it, there is nothing on your side to undo and the units simply\nleave ListNeedToShip.\n\nA partial cancellation puts the same fulfillment order in **both** queues:\ncancel the quantities named here, ship what ListNeedToShip still shows.",
+        "description": "Only acknowledged work appears here. If you never told Zentail you had\ncreated it, there is nothing on your side to undo and the units simply\nleave ListNeedToShip.\n\nEvery entry is a total withdrawal: each line cancels at its full routed\nquantity, and nothing is left on this fulfillment order for\nListNeedToShip to show. A merchant's partial reduction is not served\nhere yet — it stays pending until per-line cancellation ships\n(sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.",
         "operationId": "FulfillmentIntegrationService_ListNeedToCancel",
         "responses": {
           "200": {
@@ -663,7 +663,7 @@
       "properties": {
         "lineItemId": {
           "type": "string",
-          "description": "Echoes the fulfillment order's line, so a partial cancel names exactly\nwhich line it reduces."
+          "description": "Echoes the fulfillment order's line this cancels."
         },
         "sku": {
           "type": "string",
@@ -672,7 +672,7 @@
         "quantity": {
           "type": "integer",
           "format": "int32",
-          "description": "How many units to pull back — not the line's routed total."
+          "description": "How many units to pull back — always the line's full routed quantity,\nnever a lesser amount (sales-orders, ZEN-3944 tracks partial support)."
         }
       },
       "description": "CancellationLine is deliberately not a FulfillmentOrderLine. On a\nfulfillment order, quantity means \"routed to your warehouse\"; on a cancel it\nmeans \"pull this many back\", and shipped_quantity / cancelled_quantity have\nno meaning on an instruction at all. An integration that reuses one line\nparser across both would read the wrong number."
@@ -717,7 +717,7 @@
           "items": {
             "$ref": "#/definitions/shipping_apiCancellationLine"
           },
-          "description": "The quantities to pull back. A partial cancellation lists only some lines,\nor a lower quantity than the fulfillment order carries — ship the rest."
+          "description": "The quantities to pull back — always every line at its full routed\nquantity. ListNeedToCancel admits only a total withdrawal from a\nwarehouse today, never a partial one (sales-orders, ZEN-3944 tracks\nthe gap)."
         },
         "requestedTs": {
           "type": "string",

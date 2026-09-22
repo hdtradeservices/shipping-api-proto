@@ -268,9 +268,9 @@ parser across both would read the wrong number.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| line_item_id | [string](#string) |  | Echoes the fulfillment order&#39;s line, so a partial cancel names exactly which line it reduces. |
+| line_item_id | [string](#string) |  | Echoes the fulfillment order&#39;s line this cancels. |
 | sku | [string](#string) |  | The SKU on that line, so a warehouse operator can read the instruction. line_item_id is what identifies the line — one SKU can appear on two. |
-| quantity | [int32](#int32) |  | How many units to pull back — not the line&#39;s routed total. |
+| quantity | [int32](#int32) |  | How many units to pull back — always the line&#39;s full routed quantity, never a lesser amount (sales-orders, ZEN-3944 tracks partial support). |
 
 
 
@@ -290,7 +290,7 @@ CancellationRequest is Zentail asking for work back.
 | order_number | [string](#string) |  | The customer order this came from, for display and correlation. Not an identifier: one customer order can produce two fulfillment orders for you. |
 | warehouse_unique_id | [string](#string) |  | The warehouse the work was routed to, in your own namespace. Carried so a multi-warehouse integration can route the pull-back without re-reading the fulfillment order. |
 | reason | [CancellationReason](#shipping_api-CancellationReason) |  | Why, so it can be shown to a warehouse operator. |
-| lines | [CancellationLine](#shipping_api-CancellationLine) | repeated | The quantities to pull back. A partial cancellation lists only some lines, or a lower quantity than the fulfillment order carries — ship the rest. |
+| lines | [CancellationLine](#shipping_api-CancellationLine) | repeated | The quantities to pull back — always every line at its full routed quantity. ListNeedToCancel admits only a total withdrawal from a warehouse today, never a partial one (sales-orders, ZEN-3944 tracks the gap). |
 | requested_ts | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  | When Zentail asked for the work back. For ageing a queue you have not drained — it is not a deadline, and not an idempotency key. |
 
 
@@ -948,7 +948,7 @@ An order leaves this queue when its lines are shipped, when Zentail cancels it, 
 
 Only acknowledged work appears here. If you never told Zentail you had created it, there is nothing on your side to undo and the units simply leave ListNeedToShip.
 
-A partial cancellation puts the same fulfillment order in **both** queues: cancel the quantities named here, ship what ListNeedToShip still shows. |
+Every entry is a total withdrawal: each line cancels at its full routed quantity, and nothing is left on this fulfillment order for ListNeedToShip to show. A merchant&#39;s partial reduction is not served here yet — it stays pending until per-line cancellation ships (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21. |
 | GetFulfillmentOrder | [GetFulfillmentOrderRequest](#shipping_api-GetFulfillmentOrderRequest) | [FulfillmentOrder](#shipping_api-FulfillmentOrder) | GetFulfillmentOrder fetches one fulfillment order, whatever queue it is or is not in. For troubleshooting and for reconciling after a crash.
 
 Pass exactly one of fulfillment_order_id or external_order_id. This is a point lookup, not a queue: an order it returns may still owe a shipment, and only ListNeedToShip says so. Polling it in place of the queues tells you what exists, never what Zentail wants done. |

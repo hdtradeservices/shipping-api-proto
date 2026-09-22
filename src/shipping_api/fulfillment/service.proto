@@ -72,8 +72,11 @@ service FulfillmentIntegrationService {
   // created it, there is nothing on your side to undo and the units simply
   // leave ListNeedToShip.
   //
-  // A partial cancellation puts the same fulfillment order in **both** queues:
-  // cancel the quantities named here, ship what ListNeedToShip still shows.
+  // Every entry is a total withdrawal: each line cancels at its full routed
+  // quantity, and nothing is left on this fulfillment order for
+  // ListNeedToShip to show. A merchant's partial reduction is not served
+  // here yet — it stays pending until per-line cancellation ships
+  // (sales-orders, ZEN-3944). Measured against sales-orders on 2026-09-21.
   rpc ListNeedToCancel(ListNeedToCancelRequest)
       returns (ListNeedToCancelResponse) {
     option (google.api.http) = {
@@ -310,8 +313,10 @@ message CancellationRequest {
   string warehouse_unique_id = 4;
   // Why, so it can be shown to a warehouse operator.
   CancellationReason reason = 5;
-  // The quantities to pull back. A partial cancellation lists only some lines,
-  // or a lower quantity than the fulfillment order carries — ship the rest.
+  // The quantities to pull back — always every line at its full routed
+  // quantity. ListNeedToCancel admits only a total withdrawal from a
+  // warehouse today, never a partial one (sales-orders, ZEN-3944 tracks
+  // the gap).
   repeated CancellationLine lines = 6;
   // When Zentail asked for the work back. For ageing a queue you have not
   // drained — it is not a deadline, and not an idempotency key.
@@ -483,13 +488,13 @@ enum FulfillmentOrderStatus {
 // no meaning on an instruction at all. An integration that reuses one line
 // parser across both would read the wrong number.
 message CancellationLine {
-  // Echoes the fulfillment order's line, so a partial cancel names exactly
-  // which line it reduces.
+  // Echoes the fulfillment order's line this cancels.
   string line_item_id = 1;
   // The SKU on that line, so a warehouse operator can read the instruction.
   // line_item_id is what identifies the line — one SKU can appear on two.
   string sku = 2;
-  // How many units to pull back — not the line's routed total.
+  // How many units to pull back — always the line's full routed quantity,
+  // never a lesser amount (sales-orders, ZEN-3944 tracks partial support).
   int32 quantity = 3;
 }
 

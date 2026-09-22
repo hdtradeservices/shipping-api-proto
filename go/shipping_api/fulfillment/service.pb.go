@@ -762,8 +762,10 @@ type CancellationRequest struct {
 	WarehouseUniqueId string `protobuf:"bytes,4,opt,name=warehouse_unique_id,json=warehouseUniqueId,proto3" json:"warehouse_unique_id,omitempty"`
 	// Why, so it can be shown to a warehouse operator.
 	Reason CancellationReason `protobuf:"varint,5,opt,name=reason,proto3,enum=shipping_api.CancellationReason" json:"reason,omitempty"`
-	// The quantities to pull back. A partial cancellation lists only some lines,
-	// or a lower quantity than the fulfillment order carries — ship the rest.
+	// The quantities to pull back — always every line at its full routed
+	// quantity. ListNeedToCancel admits only a total withdrawal from a
+	// warehouse today, never a partial one (sales-orders, ZEN-3944 tracks
+	// the gap).
 	Lines []*CancellationLine `protobuf:"bytes,6,rep,name=lines,proto3" json:"lines,omitempty"`
 	// When Zentail asked for the work back. For ageing a queue you have not
 	// drained — it is not a deadline, and not an idempotency key.
@@ -1266,13 +1268,13 @@ type CancellationLine struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Echoes the fulfillment order's line, so a partial cancel names exactly
-	// which line it reduces.
+	// Echoes the fulfillment order's line this cancels.
 	LineItemId string `protobuf:"bytes,1,opt,name=line_item_id,json=lineItemId,proto3" json:"line_item_id,omitempty"`
 	// The SKU on that line, so a warehouse operator can read the instruction.
 	// line_item_id is what identifies the line — one SKU can appear on two.
 	Sku string `protobuf:"bytes,2,opt,name=sku,proto3" json:"sku,omitempty"`
-	// How many units to pull back — not the line's routed total.
+	// How many units to pull back — always the line's full routed quantity,
+	// never a lesser amount (sales-orders, ZEN-3944 tracks partial support).
 	Quantity int32 `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
 }
 
