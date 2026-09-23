@@ -863,6 +863,7 @@ type GetFulfillmentOrderRequest struct {
 	// integration, so it does not uniquely identify work.
 	//
 	// Types that are assignable to Identifier:
+	//
 	//	*GetFulfillmentOrderRequest_FulfillmentOrderId
 	//	*GetFulfillmentOrderRequest_ExternalOrderId
 	Identifier isGetFulfillmentOrderRequest_Identifier `protobuf_oneof:"identifier"`
