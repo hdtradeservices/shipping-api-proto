@@ -6,11 +6,11 @@
   },
   "tags": [
     {
-      "name": "FulfillmentIntegrationService",
+      "name": "Fulfillment Integration Service",
       "description": "Drain two queues: ship what Zentail asks you to ship, and cancel what it asks you to pull back. Inventory has its own contract — see the Inventory Integration API."
     },
     {
-      "name": "WarehouseService",
+      "name": "Warehouse Service",
       "description": "Implemented by the integration. Zentail calls this to ask the integration about its own health."
     }
   ],
@@ -57,7 +57,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -91,7 +91,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -125,7 +125,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -159,7 +159,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -193,7 +193,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -227,7 +227,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -268,7 +268,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -309,7 +309,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -343,7 +343,7 @@
           }
         ],
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -367,7 +367,7 @@
           }
         },
         "tags": [
-          "FulfillmentIntegrationService"
+          "Fulfillment Integration Service"
         ]
       }
     },
@@ -400,7 +400,7 @@
           }
         ],
         "tags": [
-          "WarehouseService"
+          "Warehouse Service"
         ]
       }
     }
@@ -428,6 +428,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -439,6 +440,7 @@
         "acknowledgements": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAcknowledgement"
           },
           "description": "One entry per fulfillment order you have created on your own side.\nRequired and server-capped: an empty list, or one over the cap, fails the\nwhole request rather than answering per entry."
@@ -451,6 +453,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAcknowledgementResult"
           },
           "description": "One result per acknowledgement sent. Match on fulfillment_order_id rather\nthan on position, and read every entry: one failing does not fail the rest."
@@ -648,6 +651,7 @@
         "lines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiShipmentLine"
           },
           "description": "Not supported yet. Sending any line fails the entry rather than being\nwidened to the whole request, because treating a partial confirmation as a\nfull one would cancel units you did not. Omit it to confirm the whole\nrequest, which is the only shape ListNeedToCancel asks for today."
@@ -715,6 +719,7 @@
         "lines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCancellationLine"
           },
           "description": "The quantities to pull back — always every line at its full routed\nquantity. ListNeedToCancel admits only a total withdrawal from a\nwarehouse today, never a partial one (sales-orders, ZEN-3944 tracks\nthe gap)."
@@ -800,6 +805,7 @@
         "confirmations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCancellationConfirmation"
           },
           "description": "One entry per cancellation request you have carried out. Required and\nserver-capped, like every batch on this contract."
@@ -812,6 +818,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCancellationResult"
           },
           "description": "One result per confirmation sent, matched on fulfillment_order_id. An entry\nthat failed is still in ListNeedToCancel on the next poll."
@@ -824,6 +831,7 @@
         "shipments": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiShipment"
           },
           "description": "One entry per package. Required and server-capped: an empty list, or one\nover the cap, fails the whole request rather than answering per entry."
@@ -836,6 +844,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiShipmentResult"
           },
           "description": "One result per shipment sent. Match on external_shipment_id rather than on\nposition, and read every entry — one package failing does not fail the\nothers, and the units it covered are still owed."
@@ -904,6 +913,7 @@
         "lines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiFulfillmentOrderLine"
           },
           "description": "Authoritative on every read. Quantities change when Zentail re-routes work\nin or out of this warehouse, so never cache them across polls."
@@ -911,6 +921,7 @@
         "openAlerts": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAlert"
           },
           "description": "Alerts you currently have open on this fulfillment order. Returned so a\npoller can see what it has already raised without keeping its own record —\nthe same reason Zentail holds external_order_id."
@@ -995,6 +1006,7 @@
         "checks": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCheck"
           },
           "description": "Zentail's own observations and the integration's last reported checks, in\none list. Read `source` to tell them apart; render them together, because\nan operator asking \"is this working\" does not care who noticed."
@@ -1007,6 +1019,7 @@
         "cancellations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCancellationRequest"
           },
           "description": "What Zentail wants pulled back, one fulfillment order per entry. Only work\nyou acknowledged appears here. Each entry is re-offered on every poll until\nyou confirm it, so an entry you have already handled means the\nconfirmation did not land."
@@ -1023,6 +1036,7 @@
         "orders": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiFulfillmentOrder"
           },
           "description": "The work you owe a shipment on, one fulfillment order per entry. Every read\nis authoritative rather than incremental: quantities on `lines` are what is\nrouted to you now, and a re-route can lower them between polls."
@@ -1053,6 +1067,7 @@
         "alerts": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAlert"
           },
           "description": "One entry per condition to raise. Required and server-capped, like every\nbatch on this contract. Safe to re-send the same alerts every poll: a\nsecond open alert of the same type on the same order is not created."
@@ -1065,6 +1080,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAlertResult"
           },
           "description": "One result per alert sent, keyed by fulfillment order and type. Read\nalready_open before reacting to anything: on a steady-state poller most\nentries are re-raises of a condition that has not gone away."
@@ -1077,6 +1093,7 @@
         "rejections": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiRejection"
           },
           "description": "One entry per fulfillment order you are declining. Required and\nserver-capped, like every batch on this contract."
@@ -1089,6 +1106,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiRejectionResult"
           },
           "description": "One result per rejection sent, matched on fulfillment_order_id. Anything\nthat failed is still in ListNeedToShip on the next poll."
@@ -1113,6 +1131,7 @@
         "lines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiShipmentLine"
           },
           "description": "Not supported yet. Sending any line fails the entry rather than declining\nthe whole order, which would hand back units you can still ship, silently.\nOmit it to decline the whole fulfillment order."
@@ -1155,6 +1174,7 @@
         "resolutions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAlertResolution"
           },
           "description": "One entry per alert to clear. Required and server-capped. Only alerts this\nintegration raised are in scope — naming one raised by Zentail or by\nanother integration clears nothing."
@@ -1167,6 +1187,7 @@
         "results": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiAlertResolveResult"
           },
           "description": "One result per resolution sent, keyed by fulfillment order and type. Read\nalready_resolved before reacting: nothing open to clear is the normal\nanswer to a retry, and to a user having cleared it first."
@@ -1208,6 +1229,7 @@
         "lines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiShipmentLine"
           },
           "description": "What is in the package. Omit to ship everything the fulfillment order still\nowes — the common case. Naming lines ships those quantities only; a\nline_item_id not on the order, a quantity below one, or quantities summing\npast what is owed fails this package and leaves the units owed."
@@ -1267,6 +1289,7 @@
         "checks": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/shipping_apiCheck"
           },
           "description": "Everything the integration knows about this warehouse's health, one entry\nper condition. Leave `source` and `warehouse_unique_id` unset; Zentail\noverwrites both as it folds these into IntegrationStatus. An empty list\nmeans nothing to report, which Zentail renders as healthy."
