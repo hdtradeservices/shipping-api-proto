@@ -10,6 +10,7 @@ package fulfillment
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -24,629 +25,548 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
-
 var (
-	filter_FulfillmentIntegrationService_ListNeedToShip_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
 )
 
-func request_FulfillmentIntegrationService_ListNeedToShip_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNeedToShipRequest
-	var metadata runtime.ServerMetadata
+var filter_FulfillmentIntegrationService_ListNeedToShip_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
+func request_FulfillmentIntegrationService_ListNeedToShip_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListNeedToShipRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_ListNeedToShip_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListNeedToShip(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_ListNeedToShip_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNeedToShipRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListNeedToShipRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_ListNeedToShip_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListNeedToShip(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_FulfillmentIntegrationService_ListNeedToCancel_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_FulfillmentIntegrationService_ListNeedToCancel_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_FulfillmentIntegrationService_ListNeedToCancel_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNeedToCancelRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListNeedToCancelRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_ListNeedToCancel_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListNeedToCancel(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_ListNeedToCancel_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNeedToCancelRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListNeedToCancelRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_ListNeedToCancel_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListNeedToCancel(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_FulfillmentIntegrationService_GetFulfillmentOrder_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_FulfillmentIntegrationService_GetFulfillmentOrder_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_FulfillmentIntegrationService_GetFulfillmentOrder_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFulfillmentOrderRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetFulfillmentOrderRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_GetFulfillmentOrder_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetFulfillmentOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_GetFulfillmentOrder_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFulfillmentOrderRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetFulfillmentOrderRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FulfillmentIntegrationService_GetFulfillmentOrder_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetFulfillmentOrder(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AcknowledgeFulfillmentOrdersRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq AcknowledgeFulfillmentOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.AcknowledgeFulfillmentOrders(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AcknowledgeFulfillmentOrdersRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq AcknowledgeFulfillmentOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.AcknowledgeFulfillmentOrders(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_ConfirmShipments_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmShipmentsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ConfirmShipmentsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.ConfirmShipments(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_ConfirmShipments_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmShipmentsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ConfirmShipmentsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ConfirmShipments(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_ConfirmCancellations_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmCancellationsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ConfirmCancellationsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.ConfirmCancellations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_ConfirmCancellations_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmCancellationsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ConfirmCancellationsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ConfirmCancellations(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RejectFulfillmentOrdersRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq RejectFulfillmentOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.RejectFulfillmentOrders(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RejectFulfillmentOrdersRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq RejectFulfillmentOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.RejectFulfillmentOrders(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_RaiseAlerts_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RaiseAlertsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq RaiseAlertsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.RaiseAlerts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_RaiseAlerts_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RaiseAlertsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq RaiseAlertsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.RaiseAlerts(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_ResolveAlerts_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ResolveAlertsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ResolveAlertsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.ResolveAlerts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_ResolveAlerts_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ResolveAlertsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ResolveAlertsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ResolveAlerts(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_FulfillmentIntegrationService_IntegrationStatus_0(ctx context.Context, marshaler runtime.Marshaler, client FulfillmentIntegrationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IntegrationStatusRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq IntegrationStatusRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.IntegrationStatus(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_FulfillmentIntegrationService_IntegrationStatus_0(ctx context.Context, marshaler runtime.Marshaler, server FulfillmentIntegrationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IntegrationStatusRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq IntegrationStatusRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.IntegrationStatus(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_WarehouseService_WarehouseStatus_0(ctx context.Context, marshaler runtime.Marshaler, client WarehouseServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq WarehouseStatusRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq WarehouseStatusRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["warehouse_unique_id"]
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["warehouse_unique_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "warehouse_unique_id")
 	}
-
 	protoReq.WarehouseUniqueId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "warehouse_unique_id", err)
 	}
-
 	msg, err := client.WarehouseStatus(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_WarehouseService_WarehouseStatus_0(ctx context.Context, marshaler runtime.Marshaler, server WarehouseServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq WarehouseStatusRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq WarehouseStatusRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["warehouse_unique_id"]
+	val, ok := pathParams["warehouse_unique_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "warehouse_unique_id")
 	}
-
 	protoReq.WarehouseUniqueId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "warehouse_unique_id", err)
 	}
-
 	msg, err := server.WarehouseStatus(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterFulfillmentIntegrationServiceHandlerServer registers the http handlers for service FulfillmentIntegrationService to "mux".
 // UnaryRPC     :call FulfillmentIntegrationServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterFulfillmentIntegrationServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterFulfillmentIntegrationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server FulfillmentIntegrationServiceServer) error {
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_ListNeedToShip_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_ListNeedToShip_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToShip", runtime.WithHTTPPathPattern("/v2/shipping/need_to_ship"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToShip", runtime.WithHTTPPathPattern("/v2/shipping/need_to_ship"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_ListNeedToShip_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_ListNeedToShip_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ListNeedToShip_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ListNeedToShip_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_ListNeedToCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_ListNeedToCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToCancel", runtime.WithHTTPPathPattern("/v2/shipping/need_to_cancel"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToCancel", runtime.WithHTTPPathPattern("/v2/shipping/need_to_cancel"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_ListNeedToCancel_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_ListNeedToCancel_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ListNeedToCancel_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ListNeedToCancel_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/GetFulfillmentOrder", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_order"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/GetFulfillmentOrder", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_GetFulfillmentOrder_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_GetFulfillmentOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_GetFulfillmentOrder_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_GetFulfillmentOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/AcknowledgeFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/acknowledge"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/AcknowledgeFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/acknowledge"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ConfirmShipments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ConfirmShipments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmShipments", runtime.WithHTTPPathPattern("/v2/shipping/shipments"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmShipments", runtime.WithHTTPPathPattern("/v2/shipping/shipments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_ConfirmShipments_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_ConfirmShipments_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ConfirmShipments_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ConfirmShipments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ConfirmCancellations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ConfirmCancellations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmCancellations", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/confirm_cancellations"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmCancellations", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/confirm_cancellations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_ConfirmCancellations_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_ConfirmCancellations_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ConfirmCancellations_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ConfirmCancellations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RejectFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/reject"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RejectFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/reject"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_RaiseAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_RaiseAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RaiseAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RaiseAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_RaiseAlerts_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_RaiseAlerts_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_RaiseAlerts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_RaiseAlerts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ResolveAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ResolveAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ResolveAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts/resolve"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ResolveAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts/resolve"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_ResolveAlerts_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_ResolveAlerts_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ResolveAlerts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ResolveAlerts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_IntegrationStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_IntegrationStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/IntegrationStatus", runtime.WithHTTPPathPattern("/v2/shipping/status"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/IntegrationStatus", runtime.WithHTTPPathPattern("/v2/shipping/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FulfillmentIntegrationService_IntegrationStatus_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FulfillmentIntegrationService_IntegrationStatus_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_IntegrationStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_IntegrationStatus_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -656,29 +576,27 @@ func RegisterFulfillmentIntegrationServiceHandlerServer(ctx context.Context, mux
 // UnaryRPC     :call WarehouseServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterWarehouseServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterWarehouseServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server WarehouseServiceServer) error {
-
-	mux.Handle("GET", pattern_WarehouseService_WarehouseStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_WarehouseService_WarehouseStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.WarehouseService/WarehouseStatus", runtime.WithHTTPPathPattern("/v2/warehouse/shipping_status/{warehouse_unique_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/shipping_api.WarehouseService/WarehouseStatus", runtime.WithHTTPPathPattern("/v2/warehouse/shipping_status/{warehouse_unique_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_WarehouseService_WarehouseStatus_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_WarehouseService_WarehouseStatus_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_WarehouseService_WarehouseStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_WarehouseService_WarehouseStatus_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -687,25 +605,24 @@ func RegisterWarehouseServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 // RegisterFulfillmentIntegrationServiceHandlerFromEndpoint is same as RegisterFulfillmentIntegrationServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterFulfillmentIntegrationServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
-
 	return RegisterFulfillmentIntegrationServiceHandler(ctx, mux, conn)
 }
 
@@ -719,278 +636,228 @@ func RegisterFulfillmentIntegrationServiceHandler(ctx context.Context, mux *runt
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "FulfillmentIntegrationServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "FulfillmentIntegrationServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "FulfillmentIntegrationServiceClient" to call the correct interceptors.
+// "FulfillmentIntegrationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterFulfillmentIntegrationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client FulfillmentIntegrationServiceClient) error {
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_ListNeedToShip_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_ListNeedToShip_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToShip", runtime.WithHTTPPathPattern("/v2/shipping/need_to_ship"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToShip", runtime.WithHTTPPathPattern("/v2/shipping/need_to_ship"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_ListNeedToShip_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_ListNeedToShip_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ListNeedToShip_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ListNeedToShip_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_ListNeedToCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_ListNeedToCancel_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToCancel", runtime.WithHTTPPathPattern("/v2/shipping/need_to_cancel"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ListNeedToCancel", runtime.WithHTTPPathPattern("/v2/shipping/need_to_cancel"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_ListNeedToCancel_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_ListNeedToCancel_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ListNeedToCancel_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ListNeedToCancel_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/GetFulfillmentOrder", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_order"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/GetFulfillmentOrder", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_GetFulfillmentOrder_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_GetFulfillmentOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_GetFulfillmentOrder_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_GetFulfillmentOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/AcknowledgeFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/acknowledge"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/AcknowledgeFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/acknowledge"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ConfirmShipments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ConfirmShipments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmShipments", runtime.WithHTTPPathPattern("/v2/shipping/shipments"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmShipments", runtime.WithHTTPPathPattern("/v2/shipping/shipments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_ConfirmShipments_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_ConfirmShipments_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ConfirmShipments_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ConfirmShipments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ConfirmCancellations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ConfirmCancellations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmCancellations", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/confirm_cancellations"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ConfirmCancellations", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/confirm_cancellations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_ConfirmCancellations_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_ConfirmCancellations_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ConfirmCancellations_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ConfirmCancellations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RejectFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/reject"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RejectFulfillmentOrders", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/reject"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_RejectFulfillmentOrders_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_RaiseAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_RaiseAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RaiseAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/RaiseAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_RaiseAlerts_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_RaiseAlerts_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_RaiseAlerts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_RaiseAlerts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_FulfillmentIntegrationService_ResolveAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_FulfillmentIntegrationService_ResolveAlerts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ResolveAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts/resolve"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/ResolveAlerts", runtime.WithHTTPPathPattern("/v2/shipping/fulfillment_orders/alerts/resolve"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_ResolveAlerts_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_ResolveAlerts_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_ResolveAlerts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_ResolveAlerts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_FulfillmentIntegrationService_IntegrationStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_FulfillmentIntegrationService_IntegrationStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/IntegrationStatus", runtime.WithHTTPPathPattern("/v2/shipping/status"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.FulfillmentIntegrationService/IntegrationStatus", runtime.WithHTTPPathPattern("/v2/shipping/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FulfillmentIntegrationService_IntegrationStatus_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_FulfillmentIntegrationService_IntegrationStatus_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_FulfillmentIntegrationService_IntegrationStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_FulfillmentIntegrationService_IntegrationStatus_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
 	return nil
 }
 
 var (
-	pattern_FulfillmentIntegrationService_ListNeedToShip_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "need_to_ship"}, ""))
-
-	pattern_FulfillmentIntegrationService_ListNeedToCancel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "need_to_cancel"}, ""))
-
-	pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "fulfillment_order"}, ""))
-
+	pattern_FulfillmentIntegrationService_ListNeedToShip_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "need_to_ship"}, ""))
+	pattern_FulfillmentIntegrationService_ListNeedToCancel_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "need_to_cancel"}, ""))
+	pattern_FulfillmentIntegrationService_GetFulfillmentOrder_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "fulfillment_order"}, ""))
 	pattern_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "acknowledge"}, ""))
-
-	pattern_FulfillmentIntegrationService_ConfirmShipments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "shipments"}, ""))
-
-	pattern_FulfillmentIntegrationService_ConfirmCancellations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "confirm_cancellations"}, ""))
-
-	pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "reject"}, ""))
-
-	pattern_FulfillmentIntegrationService_RaiseAlerts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "alerts"}, ""))
-
-	pattern_FulfillmentIntegrationService_ResolveAlerts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v2", "shipping", "fulfillment_orders", "alerts", "resolve"}, ""))
-
-	pattern_FulfillmentIntegrationService_IntegrationStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "status"}, ""))
+	pattern_FulfillmentIntegrationService_ConfirmShipments_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "shipments"}, ""))
+	pattern_FulfillmentIntegrationService_ConfirmCancellations_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "confirm_cancellations"}, ""))
+	pattern_FulfillmentIntegrationService_RejectFulfillmentOrders_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "reject"}, ""))
+	pattern_FulfillmentIntegrationService_RaiseAlerts_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v2", "shipping", "fulfillment_orders", "alerts"}, ""))
+	pattern_FulfillmentIntegrationService_ResolveAlerts_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v2", "shipping", "fulfillment_orders", "alerts", "resolve"}, ""))
+	pattern_FulfillmentIntegrationService_IntegrationStatus_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "shipping", "status"}, ""))
 )
 
 var (
-	forward_FulfillmentIntegrationService_ListNeedToShip_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_ListNeedToCancel_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_GetFulfillmentOrder_0 = runtime.ForwardResponseMessage
-
+	forward_FulfillmentIntegrationService_ListNeedToShip_0               = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_ListNeedToCancel_0             = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_GetFulfillmentOrder_0          = runtime.ForwardResponseMessage
 	forward_FulfillmentIntegrationService_AcknowledgeFulfillmentOrders_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_ConfirmShipments_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_ConfirmCancellations_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_RaiseAlerts_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_ResolveAlerts_0 = runtime.ForwardResponseMessage
-
-	forward_FulfillmentIntegrationService_IntegrationStatus_0 = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_ConfirmShipments_0             = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_ConfirmCancellations_0         = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_RejectFulfillmentOrders_0      = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_RaiseAlerts_0                  = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_ResolveAlerts_0                = runtime.ForwardResponseMessage
+	forward_FulfillmentIntegrationService_IntegrationStatus_0            = runtime.ForwardResponseMessage
 )
 
 // RegisterWarehouseServiceHandlerFromEndpoint is same as RegisterWarehouseServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterWarehouseServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
-
 	return RegisterWarehouseServiceHandler(ctx, mux, conn)
 }
 
@@ -1004,29 +871,25 @@ func RegisterWarehouseServiceHandler(ctx context.Context, mux *runtime.ServeMux,
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "WarehouseServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "WarehouseServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "WarehouseServiceClient" to call the correct interceptors.
+// "WarehouseServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterWarehouseServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client WarehouseServiceClient) error {
-
-	mux.Handle("GET", pattern_WarehouseService_WarehouseStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_WarehouseService_WarehouseStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.WarehouseService/WarehouseStatus", runtime.WithHTTPPathPattern("/v2/warehouse/shipping_status/{warehouse_unique_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/shipping_api.WarehouseService/WarehouseStatus", runtime.WithHTTPPathPattern("/v2/warehouse/shipping_status/{warehouse_unique_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_WarehouseService_WarehouseStatus_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_WarehouseService_WarehouseStatus_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_WarehouseService_WarehouseStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
+		forward_WarehouseService_WarehouseStatus_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-
 	return nil
 }
 
